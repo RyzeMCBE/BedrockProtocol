@@ -39,6 +39,7 @@ class UseItemTransactionData extends TransactionData{
 	private BlockPosition $blockPosition;
 	private int $face;
 	private int $hotbarSlot;
+	private int $hand = 0;
 	private ItemStackWrapper $itemInHand;
 	private Vector3 $playerPosition;
 	private Vector3 $clickPosition;
@@ -64,6 +65,8 @@ class UseItemTransactionData extends TransactionData{
 		return $this->hotbarSlot;
 	}
 
+	public function getHand() : int{ return $this->hand; }
+
 	public function getItemInHand() : ItemStackWrapper{
 		return $this->itemInHand;
 	}
@@ -87,10 +90,11 @@ class UseItemTransactionData extends TransactionData{
 	protected function decodeData(ByteBufferReader $in) : void{
 		$this->actionType = VarInt::readSignedInt($in);
 		$this->triggerType = TriggerType::fromPacket(Byte::readUnsigned($in));
-		$this->blockPosition = CommonTypes::getBlockPosition($in);
+		$this->blockPosition = CommonTypes::getBlockPosition($in, true);
 		$this->face = Byte::readUnsigned($in);
 		$this->hotbarSlot = VarInt::readSignedInt($in);
-		$this->itemInHand = CommonTypes::getNetworkItemStackDescriptor($in);
+		$this->hand = Byte::readUnsigned($in);
+		$this->itemInHand = CommonTypes::getItemStackWrapper($in);
 		$this->playerPosition = CommonTypes::getVector3($in);
 		$this->clickPosition = CommonTypes::getVector3($in);
 		$this->blockRuntimeId = VarInt::readUnsignedInt($in);
@@ -101,10 +105,11 @@ class UseItemTransactionData extends TransactionData{
 	protected function encodeData(ByteBufferWriter $out) : void{
 		VarInt::writeSignedInt($out, $this->actionType);
 		Byte::writeUnsigned($out, $this->triggerType->value);
-		CommonTypes::putBlockPosition($out, $this->blockPosition);
+		CommonTypes::putBlockPosition($out, $this->blockPosition, true);
 		Byte::writeUnsigned($out, $this->face);
 		VarInt::writeSignedInt($out, $this->hotbarSlot);
-		CommonTypes::putNetworkItemStackDescriptor($out, $this->itemInHand);
+		Byte::writeUnsigned($out, $this->hand);
+		CommonTypes::putItemStackWrapper($out, $this->itemInHand);
 		CommonTypes::putVector3($out, $this->playerPosition);
 		CommonTypes::putVector3($out, $this->clickPosition);
 		VarInt::writeUnsignedInt($out, $this->blockRuntimeId);

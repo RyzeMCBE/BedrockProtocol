@@ -46,12 +46,14 @@ class ClientboundDebugRendererPacket extends DataPacket implements ClientboundPa
 
 	public function getData() : ?DebugMarkerData{ return $this->data; }
 
-	protected function decodePayload(ByteBufferReader $in) : void{
+	protected function decodePayload(ByteBufferReader $in) : void
+	{
 		$this->type = CommonTypes::getString($in);
-		$this->data = CommonTypes::readOptional($in, DebugMarkerData::read(...));
+		$this->data = CommonTypes::readOptional($in, fn(ByteBufferReader $in) => DebugMarkerData::read($in));
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out) : void
+	{
 		CommonTypes::putString($out, $this->type);
 		CommonTypes::writeOptional($out, $this->data, fn(ByteBufferWriter $out, DebugMarkerData $data) => $data->write($out));
 	}

@@ -17,6 +17,7 @@ namespace pocketmine\network\mcpe\protocol\types\camera;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
+use pocketmine\nbt\tag\CompoundTag;
 
 final class CameraSetInstructionRotation{
 
@@ -35,8 +36,20 @@ final class CameraSetInstructionRotation{
 		return new self($pitch, $yaw);
 	}
 
+	public static function fromNBT(CompoundTag $nbt) : self{
+		$pitch = $nbt->getFloat("x");
+		$yaw = $nbt->getFloat("y");
+		return new self($pitch, $yaw);
+	}
+
 	public function write(ByteBufferWriter $out) : void{
 		LE::writeFloat($out, $this->pitch);
 		LE::writeFloat($out, $this->yaw);
+	}
+
+	public function toNBT() : CompoundTag{
+		return CompoundTag::create()
+			->setFloat("x", $this->pitch)
+			->setFloat("y", $this->yaw);
 	}
 }

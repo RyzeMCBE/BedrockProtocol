@@ -22,6 +22,7 @@ use pmmp\encoding\LE;
 use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\PacketDecodeException;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
+use function array_search;
 use function count;
 
 final class ItemStackRequest{
@@ -63,6 +64,8 @@ final class ItemStackRequest{
 			DestroyStackRequestAction::ID => DestroyStackRequestAction::read($in),
 			CraftingConsumeInputStackRequestAction::ID => CraftingConsumeInputStackRequestAction::read($in),
 			CraftingCreateSpecificResultStackRequestAction::ID => CraftingCreateSpecificResultStackRequestAction::read($in),
+			PlaceIntoBundleStackRequestAction::ID => PlaceIntoBundleStackRequestAction::read($in),
+			TakeFromBundleStackRequestAction::ID => TakeFromBundleStackRequestAction::read($in),
 			LabTableCombineStackRequestAction::ID => LabTableCombineStackRequestAction::read($in),
 			BeaconPaymentStackRequestAction::ID => BeaconPaymentStackRequestAction::read($in),
 			MineBlockStackRequestAction::ID => MineBlockStackRequestAction::read($in),
@@ -82,7 +85,12 @@ final class ItemStackRequest{
 		$requestId = CommonTypes::readItemStackRequestId($in);
 		$actions = [];
 		for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
+			$outerTypeId = VarInt::readUnsignedInt($in);
 			$typeId = Byte::readUnsigned($in);
+			$expectedTypeId = ItemStackRequestActionType::INNER_TYPES_1_26_40[$outerTypeId] ?? null;
+			if($expectedTypeId === null || $expectedTypeId !== $typeId){
+					throw new PacketDecodeException("ItemStackRequestAction type mismatch: outer type $outerTypeId, inner type $typeId");
+				}
 			$actions[] = self::readAction($in, $typeId);
 		}
 		$filterStrings = [];
@@ -97,7 +105,13 @@ final class ItemStackRequest{
 		CommonTypes::writeItemStackRequestId($out, $this->requestId);
 		VarInt::writeUnsignedInt($out, count($this->actions));
 		foreach($this->actions as $action){
-			Byte::writeUnsigned($out, $action->getTypeId());
+			$typeId = $action->getTypeId();
+			$outerTypeId = array_search($typeId, ItemStackRequestActionType::INNER_TYPES_1_26_40, true);
+			if($outerTypeId === false){
+					throw new \InvalidArgumentException("Item stack request action type $typeId is unsupported by protocol {2193}");
+				}
+			VarInt::writeUnsignedInt($out, $outerTypeId);
+			Byte::writeUnsigned($out, $typeId);
 			$action->write($out);
 		}
 		VarInt::writeUnsignedInt($out, count($this->filterStrings));

@@ -64,7 +64,7 @@ final class AttributeLayer{
 
 		return new self(
 			$name,
-			$noiseName,
+			$noiseName ?? null,
 			$dimension,
 			$settings,
 			$attributes,

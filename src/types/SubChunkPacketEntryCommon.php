@@ -45,21 +45,23 @@ final class SubChunkPacketEntryCommon{
 
 		$requestResult = Byte::readUnsigned($in);
 
-		$data = !$cacheEnabled || $requestResult !== SubChunkRequestResult::SUCCESS_ALL_AIR ? CommonTypes::getString($in) : "";
+		$data = CommonTypes::readOptional($in, CommonTypes::getString(...)) ?? "";
 
 		$heightMapDataType = Byte::readUnsigned($in);
+		$heightMapPayload = CommonTypes::readOptional($in, SubChunkPacketHeightMapInfo::read(...));
 		$heightMapData = match ($heightMapDataType) {
 			SubChunkPacketHeightMapType::NO_DATA => null,
-			SubChunkPacketHeightMapType::DATA => SubChunkPacketHeightMapInfo::read($in),
+			SubChunkPacketHeightMapType::DATA => $heightMapPayload ?? throw new PacketDecodeException("Missing heightmap data"),
 			SubChunkPacketHeightMapType::ALL_TOO_HIGH => SubChunkPacketHeightMapInfo::allTooHigh(),
 			SubChunkPacketHeightMapType::ALL_TOO_LOW => SubChunkPacketHeightMapInfo::allTooLow(),
 			default => throw new PacketDecodeException("Unknown heightmap data type $heightMapDataType")
 		};
 
 		$renderHeightMapDataType = Byte::readUnsigned($in);
+		$renderHeightMapPayload = CommonTypes::readOptional($in, SubChunkPacketHeightMapInfo::read(...));
 		$renderHeightMapData = match ($renderHeightMapDataType) {
 			SubChunkPacketHeightMapType::NO_DATA => null,
-			SubChunkPacketHeightMapType::DATA => SubChunkPacketHeightMapInfo::read($in),
+			SubChunkPacketHeightMapType::DATA => $renderHeightMapPayload ?? throw new PacketDecodeException("Missing render heightmap data"),
 			SubChunkPacketHeightMapType::ALL_TOO_HIGH => SubChunkPacketHeightMapInfo::allTooHigh(),
 			SubChunkPacketHeightMapType::ALL_TOO_LOW => SubChunkPacketHeightMapInfo::allTooLow(),
 			SubChunkPacketHeightMapType::ALL_COPIED => $heightMapData,
@@ -80,32 +82,21 @@ final class SubChunkPacketEntryCommon{
 
 		Byte::writeUnsigned($out, $this->requestResult);
 
-		if(!$cacheEnabled || $this->requestResult !== SubChunkRequestResult::SUCCESS_ALL_AIR){
-			CommonTypes::putString($out, $this->terrainData);
-		}
+		$terrainData = $cacheEnabled && $this->requestResult === SubChunkRequestResult::SUCCESS_ALL_AIR ? null : $this->terrainData;
+		CommonTypes::writeOptional($out, $terrainData, CommonTypes::putString(...));
 
-		if($this->heightMap === null){
-			Byte::writeUnsigned($out, SubChunkPacketHeightMapType::NO_DATA);
-		}elseif($this->heightMap->isAllTooLow()){
-			Byte::writeUnsigned($out, SubChunkPacketHeightMapType::ALL_TOO_LOW);
-		}elseif($this->heightMap->isAllTooHigh()){
-			Byte::writeUnsigned($out, SubChunkPacketHeightMapType::ALL_TOO_HIGH);
-		}else{
-			$heightMapData = $this->heightMap; //avoid PHPStan purity issue
-			Byte::writeUnsigned($out, SubChunkPacketHeightMapType::DATA);
-			$heightMapData->write($out);
-		}
+		self::writeHeightMap($out, $this->heightMap, SubChunkPacketHeightMapType::NO_DATA);
+		self::writeHeightMap($out, $this->renderHeightMap, SubChunkPacketHeightMapType::ALL_COPIED);
+	}
 
-		if($this->renderHeightMap === null){
-			Byte::writeUnsigned($out, SubChunkPacketHeightMapType::ALL_COPIED);
-		}elseif($this->renderHeightMap->isAllTooLow()){
-			Byte::writeUnsigned($out, SubChunkPacketHeightMapType::ALL_TOO_LOW);
-		}elseif($this->renderHeightMap->isAllTooHigh()){
-			Byte::writeUnsigned($out, SubChunkPacketHeightMapType::ALL_TOO_HIGH);
-		}else{
-			$renderHeightMapData = $this->renderHeightMap; //avoid PHPStan purity issue
-			Byte::writeUnsigned($out, SubChunkPacketHeightMapType::DATA);
-			$renderHeightMapData->write($out);
-		}
+	private static function writeHeightMap(ByteBufferWriter $out, ?SubChunkPacketHeightMapInfo $map, int $emptyType) : void{
+		$type = match(true){
+			$map === null => $emptyType,
+			$map->isAllTooLow() => SubChunkPacketHeightMapType::ALL_TOO_LOW,
+			$map->isAllTooHigh() => SubChunkPacketHeightMapType::ALL_TOO_HIGH,
+			default => SubChunkPacketHeightMapType::DATA
+		};
+		Byte::writeUnsigned($out, $type);
+		CommonTypes::writeOptional($out, $type === SubChunkPacketHeightMapType::DATA ? $map : null, static fn(ByteBufferWriter $out, SubChunkPacketHeightMapInfo $data) => $data->write($out));
 	}
 }

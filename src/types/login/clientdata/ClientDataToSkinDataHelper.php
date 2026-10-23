@@ -73,12 +73,14 @@ final class ClientDataToSkinDataHelper{
 			array_map(function(ClientDataPersonaPieceTintColor $tint) : PersonaPieceTintColor{
 				return new PersonaPieceTintColor($tint->PieceType, $tint->Colors);
 			}, $clientData->PieceTintColors),
-			true,
+			$clientData->TrustedSkin,
 			$clientData->PremiumSkin,
 			$clientData->PersonaSkin,
 			$clientData->CapeOnClassicSkin,
 			true, //assume this is true? there's no field for it ...
 			$clientData->OverrideSkin ?? true,
+			$clientData->TrustedSkin ? "true" : "false",
+			$clientData->ProfileHash,
 		);
 	}
 }

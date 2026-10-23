@@ -16,6 +16,7 @@ namespace pocketmine\network\mcpe\protocol\types\camera;
 
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
+use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use pocketmine\network\mcpe\protocol\types\camera\CameraFadeInstructionColor as Color;
 use pocketmine\network\mcpe\protocol\types\camera\CameraFadeInstructionTime as Time;
@@ -40,8 +41,31 @@ final class CameraFadeInstruction{
 		);
 	}
 
+	public static function fromNBT(CompoundTag $nbt) : self{
+		$time = $nbt->getCompoundTag("time") ?? throw new \InvalidArgumentException("Missing time tag");
+		$color = $nbt->getCompoundTag("color") ?? throw new \InvalidArgumentException("Missing color tag");
+		return new self(
+			Time::fromNBT($time),
+			Color::fromNBT($color),
+		);
+	}
+
 	public function write(ByteBufferWriter $out) : void{
 		CommonTypes::writeOptional($out, $this->time, fn(ByteBufferWriter $out, Time $v) => $v->write($out));
 		CommonTypes::writeOptional($out, $this->color, fn(ByteBufferWriter $out, Color $v) => $v->write($out));
+	}
+
+	public function toNBT() : CompoundTag{
+		$nbt = CompoundTag::create();
+
+		if($this->time !== null){
+			$nbt->setTag("time", $this->time->toNBT());
+		}
+
+		if($this->color !== null){
+			$nbt->setTag("color", $this->color->toNBT());
+		}
+
+		return $nbt;
 	}
 }

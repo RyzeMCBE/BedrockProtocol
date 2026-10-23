@@ -17,6 +17,7 @@ namespace pocketmine\network\mcpe\protocol\types\camera;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
+use pocketmine\nbt\tag\CompoundTag;
 
 final class CameraFadeInstructionTime{
 
@@ -39,9 +40,23 @@ final class CameraFadeInstructionTime{
 		return new self($fadeInTime, $stayTime, $fadeOutTime);
 	}
 
+	public static function fromNBT(CompoundTag $nbt) : self{
+		$fadeInTime = $nbt->getFloat("fadeIn");
+		$stayTime = $nbt->getFloat("hold");
+		$fadeOutTime = $nbt->getFloat("fadeOut");
+		return new self($fadeInTime, $stayTime, $fadeOutTime);
+	}
+
 	public function write(ByteBufferWriter $out) : void{
 		LE::writeFloat($out, $this->fadeInTime);
 		LE::writeFloat($out, $this->stayTime);
 		LE::writeFloat($out, $this->fadeOutTime);
+	}
+
+	public function toNBT() : CompoundTag{
+		return CompoundTag::create()
+			->setFloat("fadeIn", $this->fadeInTime)
+			->setFloat("hold", $this->stayTime)
+			->setFloat("fadeOut", $this->fadeOutTime);
 	}
 }

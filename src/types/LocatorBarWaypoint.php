@@ -29,6 +29,7 @@ final class LocatorBarWaypoint{
 		private int $updateFlag,
 		private ?bool $visible,
 		private ?WorldPosition $worldPosition,
+		private ?int $textureId,
 		private ?string $texturePath,
 		private ?Vector2 $iconSize,
 		private ?Color $color,
@@ -41,6 +42,8 @@ final class LocatorBarWaypoint{
 	public function getVisible() : ?bool{ return $this->visible; }
 
 	public function getWorldPosition() : ?WorldPosition{ return $this->worldPosition; }
+
+	public function getTextureId() : ?int{ return $this->textureId; }
 
 	public function getTexturePath() : ?string{ return $this->texturePath; }
 
@@ -66,8 +69,9 @@ final class LocatorBarWaypoint{
 			$updateFlag,
 			$visible,
 			$worldPosition,
-			$texturePath,
-			$iconSize,
+			null,
+			$texturePath ?? null,
+			$iconSize ?? null,
 			$color,
 			$clientPositionAuthority,
 			$actorUniqueId,

@@ -54,7 +54,7 @@ class UpdateSubChunkBlocksPacket extends DataPacket implements ClientboundPacket
 	public function getLayer1Updates() : array{ return $this->layer1Updates; }
 
 	protected function decodePayload(ByteBufferReader $in) : void{
-		$this->baseBlockPosition = CommonTypes::getBlockPosition($in);
+		$this->baseBlockPosition = CommonTypes::getBlockPosition($in, true);
 		$this->layer0Updates = [];
 		for($i = 0, $count = VarInt::readUnsignedInt($in); $i < $count; ++$i){
 			$this->layer0Updates[] = UpdateSubChunkBlocksPacketEntry::read($in);
@@ -66,7 +66,7 @@ class UpdateSubChunkBlocksPacket extends DataPacket implements ClientboundPacket
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
-		CommonTypes::putBlockPosition($out, $this->baseBlockPosition);
+		CommonTypes::putBlockPosition($out, $this->baseBlockPosition, true);
 		VarInt::writeUnsignedInt($out, count($this->layer0Updates));
 		foreach($this->layer0Updates as $update){
 			$update->write($out);

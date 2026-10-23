@@ -18,6 +18,7 @@ use pmmp\encoding\Byte;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
+use pocketmine\nbt\tag\CompoundTag;
 
 final class CameraSetInstructionEase{
 
@@ -42,8 +43,21 @@ final class CameraSetInstructionEase{
 		return new self($type, $duration);
 	}
 
+	public static function fromNBT(CompoundTag $nbt) : self{
+		$typeName = $nbt->getString("type");
+		$type = CameraSetInstructionEaseType::fromName($typeName);
+		$duration = $nbt->getFloat("time");
+		return new self($type, $duration);
+	}
+
 	public function write(ByteBufferWriter $out) : void{
 		Byte::writeUnsigned($out, $this->type);
 		LE::writeFloat($out, $this->duration);
+	}
+
+	public function toNBT() : CompoundTag{
+		return CompoundTag::create()
+			->setString("type", CameraSetInstructionEaseType::toName($this->type))
+			->setFloat("time", $this->duration);
 	}
 }

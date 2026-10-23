@@ -32,11 +32,11 @@ class SkinImage{
 
 	public static function fromLegacy(string $data) : SkinImage{
 		switch(strlen($data)){
-			case 64 * 32 * 4:
+			case 8192:
 				return new self(32, 64, $data);
-			case 64 * 64 * 4:
+			case 16384:
 				return new self(64, 64, $data);
-			case 128 * 128 * 4:
+			case 65536:
 				return new self(128, 128, $data);
 		}
 

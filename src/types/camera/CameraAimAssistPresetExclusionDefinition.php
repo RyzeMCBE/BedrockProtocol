@@ -60,21 +60,18 @@ final class CameraAimAssistPresetExclusionDefinition{
 		for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
 			$blocks[] = CommonTypes::getString($in);
 		}
-
 		$entities = [];
 		for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
-			$entities[] = CommonTypes::getString($in);
-		}
-
+				$entities[] = CommonTypes::getString($in);
+			}
 		$blockTags = [];
 		for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
-			$blockTags[] = CommonTypes::getString($in);
-		}
-
+				$blockTags[] = CommonTypes::getString($in);
+			}
 		$entityTypeFamilies = [];
 		for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
-			$entityTypeFamilies[] = CommonTypes::getString($in);
-		}
+					$entityTypeFamilies[] = CommonTypes::getString($in);
+				}
 
 		return new self(
 			$blocks,
@@ -89,20 +86,17 @@ final class CameraAimAssistPresetExclusionDefinition{
 		foreach($this->blocks as $block){
 			CommonTypes::putString($out, $block);
 		}
-
 		VarInt::writeUnsignedInt($out, count($this->entities));
 		foreach($this->entities as $entity){
-			CommonTypes::putString($out, $entity);
-		}
-
+				CommonTypes::putString($out, $entity);
+			}
 		VarInt::writeUnsignedInt($out, count($this->blockTags));
 		foreach($this->blockTags as $blockTag){
-			CommonTypes::putString($out, $blockTag);
-		}
-
+				CommonTypes::putString($out, $blockTag);
+			}
 		VarInt::writeUnsignedInt($out, count($this->entityTypeFamilies));
 		foreach($this->entityTypeFamilies as $entityTypeFamily){
-			CommonTypes::putString($out, $entityTypeFamily);
-		}
+					CommonTypes::putString($out, $entityTypeFamily);
+				}
 	}
 }

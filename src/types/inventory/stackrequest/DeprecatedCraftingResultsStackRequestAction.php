@@ -17,6 +17,7 @@ namespace pocketmine\network\mcpe\protocol\types\inventory\stackrequest;
 use pmmp\encoding\Byte;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
+use pmmp\encoding\LE;
 use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use pocketmine\network\mcpe\protocol\types\GetTypeIdFromConstTrait;
@@ -47,9 +48,37 @@ final class DeprecatedCraftingResultsStackRequestAction extends ItemStackRequest
 
 	public static function read(ByteBufferReader $in) : self{
 		$results = [];
-		for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
-			$results[] = CommonTypes::getItemStackWithoutStackId($in);
-		}
+		$len = VarInt::readUnsignedInt($in);
+		// Protocol 2193 changed CraftResults from full ItemStack values to
+		// NetworkItemInstanceDescriptor values. The descriptor is also wrapped
+		// in a presence byte in the wire data emitted by the 1.26.50 client.
+		for($i = 0; $i < $len; ++$i){
+				$present = Byte::readUnsigned($in);
+				if($present === 0){
+					continue;
+				}
+				$type = Byte::readUnsigned($in);
+				switch($type){
+					case 0:
+						break;
+					case 1:
+						CommonTypes::getString($in);
+						VarInt::readSignedInt($in);
+						break;
+					case 2:
+						CommonTypes::getString($in);
+						LE::readSignedShort($in);
+						break;
+					case 3:
+						CommonTypes::getString($in);
+						break;
+					default:
+						throw new \pocketmine\network\mcpe\protocol\PacketDecodeException("Unknown item descriptor type $type");
+				}
+				LE::readUnsignedShort($in);
+				VarInt::readUnsignedInt($in);
+				CommonTypes::getString($in);
+			}
 		$iterations = Byte::readUnsigned($in);
 		return new self($results, $iterations);
 	}

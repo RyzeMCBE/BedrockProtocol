@@ -41,13 +41,13 @@ class LecternUpdatePacket extends DataPacket implements ServerboundPacket{
 	protected function decodePayload(ByteBufferReader $in) : void{
 		$this->page = Byte::readUnsigned($in);
 		$this->totalPages = Byte::readUnsigned($in);
-		$this->blockPosition = CommonTypes::getBlockPosition($in);
+		$this->blockPosition = CommonTypes::getBlockPosition($in, true);
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
 		Byte::writeUnsigned($out, $this->page);
 		Byte::writeUnsigned($out, $this->totalPages);
-		CommonTypes::putBlockPosition($out, $this->blockPosition);
+		CommonTypes::putBlockPosition($out, $this->blockPosition, true);
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

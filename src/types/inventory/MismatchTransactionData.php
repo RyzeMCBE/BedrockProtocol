@@ -37,6 +37,6 @@ class MismatchTransactionData extends TransactionData{
 	}
 
 	public static function new() : self{
-		return new self; //no arguments
+		return new self;
 	}
 }

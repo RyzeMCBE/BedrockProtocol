@@ -21,22 +21,11 @@ use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use pocketmine\network\mcpe\protocol\types\ChunkPosition;
 use pocketmine\network\mcpe\protocol\types\DimensionIds;
-use pocketmine\utils\Limits;
 use function count;
 use const PHP_INT_MAX;
 
 class LevelChunkPacket extends DataPacket implements ClientboundPacket{
 	public const NETWORK_ID = ProtocolInfo::LEVEL_CHUNK_PACKET;
-
-	/**
-	 * Client will request all subchunks as needed up to the top of the world
-	 */
-	private const CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT = Limits::UINT32_MAX;
-	/**
-	 * Client will request subchunks as needed up to the height written in the packet, and assume that anything above
-	 * that height is air (wtf mojang ...)
-	 */
-	private const CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT = Limits::UINT32_MAX - 1;
 
 	//this appears large enough for a world height of 1024 blocks - it may need to be increased in the future
 	private const MAX_BLOB_HASHES = 64;
@@ -101,56 +90,38 @@ class LevelChunkPacket extends DataPacket implements ClientboundPacket{
 	protected function decodePayload(ByteBufferReader $in) : void{
 		$this->chunkPosition = ChunkPosition::read($in);
 		$this->dimensionId = VarInt::readSignedInt($in);
-
-		$subChunkCountButNotReally = VarInt::readUnsignedInt($in);
-		if($subChunkCountButNotReally === self::CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT){
-			$this->clientSubChunkRequestsEnabled = true;
-			$this->subChunkCount = PHP_INT_MAX;
-		}elseif($subChunkCountButNotReally === self::CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT){
-			$this->clientSubChunkRequestsEnabled = true;
-			$this->subChunkCount = LE::readUnsignedShort($in);
-		}else{
-			$this->clientSubChunkRequestsEnabled = false;
-			$this->subChunkCount = $subChunkCountButNotReally;
-		}
-
+		$this->subChunkCount = VarInt::readUnsignedInt($in);
+		$subChunkRequestLimit = CommonTypes::readOptional($in, VarInt::readSignedInt(...));
+		$this->clientSubChunkRequestsEnabled = $subChunkRequestLimit !== null;
 		$cacheEnabled = CommonTypes::getBool($in);
-		if($cacheEnabled){
-			$this->usedBlobHashes = [];
-			$count = VarInt::readUnsignedInt($in);
-			if($count > self::MAX_BLOB_HASHES){
+		$count = VarInt::readUnsignedInt($in);
+		if($count > self::MAX_BLOB_HASHES){
 				throw new PacketDecodeException("Expected at most " . self::MAX_BLOB_HASHES . " blob hashes, got " . $count);
 			}
-			for($i = 0; $i < $count; ++$i){
-				$this->usedBlobHashes[] = LE::readUnsignedLong($in);
+		$blobHashes = [];
+		for($i = 0; $i < $count; ++$i){
+				$blobHashes[] = LE::readUnsignedLong($in);
 			}
-		}
+		$this->usedBlobHashes = $cacheEnabled ? $blobHashes : null;
 		$this->extraPayload = CommonTypes::getString($in);
+		return;
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
 		$this->chunkPosition->write($out);
 		VarInt::writeSignedInt($out, $this->dimensionId);
-
-		if($this->clientSubChunkRequestsEnabled){
-			if($this->subChunkCount === PHP_INT_MAX){
-				VarInt::writeUnsignedInt($out, self::CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT);
-			}else{
-				VarInt::writeUnsignedInt($out, self::CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT);
-				LE::writeUnsignedShort($out, $this->subChunkCount);
-			}
-		}else{
-			VarInt::writeUnsignedInt($out, $this->subChunkCount);
-		}
-
+		$subChunkCount = $this->subChunkCount === PHP_INT_MAX ? 0 : $this->subChunkCount;
+		VarInt::writeUnsignedInt($out, $subChunkCount);
+		$subChunkRequestLimit = $this->clientSubChunkRequestsEnabled ? $subChunkCount : null;
+		CommonTypes::writeOptional($out, $subChunkRequestLimit, VarInt::writeSignedInt(...));
 		CommonTypes::putBool($out, $this->usedBlobHashes !== null);
-		if($this->usedBlobHashes !== null){
-			VarInt::writeUnsignedInt($out, count($this->usedBlobHashes));
-			foreach($this->usedBlobHashes as $hash){
+		$blobHashes = $this->usedBlobHashes ?? [];
+		VarInt::writeUnsignedInt($out, count($blobHashes));
+		foreach($blobHashes as $hash){
 				LE::writeUnsignedLong($out, $hash);
 			}
-		}
 		CommonTypes::putString($out, $this->extraPayload);
+		return;
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

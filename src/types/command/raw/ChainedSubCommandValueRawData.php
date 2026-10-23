@@ -32,11 +32,11 @@ final class ChainedSubCommandValueRawData{
 	public static function read(ByteBufferReader $in) : self{
 		$nameIndex = VarInt::readUnsignedInt($in);
 		$type = VarInt::readUnsignedInt($in);
-
 		return new self($nameIndex, $type);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
+	public function write(ByteBufferWriter $out) : void
+	{
 		VarInt::writeUnsignedInt($out, $this->nameIndex);
 		VarInt::writeUnsignedInt($out, $this->type);
 	}

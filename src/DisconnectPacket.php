@@ -22,7 +22,10 @@ use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 class DisconnectPacket extends DataPacket implements ClientboundPacket, ServerboundPacket{
 	public const NETWORK_ID = ProtocolInfo::DISCONNECT_PACKET;
 
-	public int $reason; //TODO: add constants / enum
+	public const REASON_MISSING_STRUCTURE_DATA = 148;
+	public const REASON_UNSUPPORTED_TRANSPORT = 149;
+
+	public int $reason;
 	public ?string $message;
 	public ?string $filteredMessage;
 
@@ -43,14 +46,19 @@ class DisconnectPacket extends DataPacket implements ClientboundPacket, Serverbo
 
 	protected function decodePayload(ByteBufferReader $in) : void{
 		$this->reason = VarInt::readSignedInt($in);
+
 		$type = VarInt::readUnsignedInt($in);
+
 		$this->message = $type === 0 ? CommonTypes::getString($in) : null;
 		$this->filteredMessage = $type === 0 ? CommonTypes::getString($in) : null;
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
 		VarInt::writeSignedInt($out, $this->reason);
-		VarInt::writeUnsignedInt($out, ($skipMessage = $this->message === null && $this->filteredMessage === null) ? 1 : 0);
+
+		$skipMessage = $this->message === null && $this->filteredMessage === null;
+		VarInt::writeUnsignedInt($out, $skipMessage ? 1 : 0);
+
 		if(!$skipMessage){
 			CommonTypes::putString($out, $this->message ?? "");
 			CommonTypes::putString($out, $this->filteredMessage ?? "");

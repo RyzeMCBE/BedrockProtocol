@@ -14,7 +14,6 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol;
 
-use pmmp\encoding\Byte;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
@@ -29,7 +28,7 @@ class AnvilDamagePacket extends DataPacket implements ServerboundPacket{
 	/**
 	 * @generate-create-func
 	 */
-	public static function create(BlockPosition $blockPosition, int $damageAmount) : self{
+	public static function create(BlockPosition $blockPosition, int $damageAmount = 0) : self{
 		$result = new self;
 		$result->blockPosition = $blockPosition;
 		$result->damageAmount = $damageAmount;
@@ -43,13 +42,12 @@ class AnvilDamagePacket extends DataPacket implements ServerboundPacket{
 	public function getBlockPosition() : BlockPosition{ return $this->blockPosition; }
 
 	protected function decodePayload(ByteBufferReader $in) : void{
-		$this->damageAmount = Byte::readUnsigned($in);
-		$this->blockPosition = CommonTypes::getBlockPosition($in);
+		$this->damageAmount = 0;
+		$this->blockPosition = CommonTypes::getBlockPosition($in, true);
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
-		Byte::writeUnsigned($out, $this->damageAmount);
-		CommonTypes::putBlockPosition($out, $this->blockPosition);
+		CommonTypes::putBlockPosition($out, $this->blockPosition, true);
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

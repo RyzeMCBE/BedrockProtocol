@@ -39,13 +39,13 @@ class BlockEventPacket extends DataPacket implements ClientboundPacket{
 	}
 
 	protected function decodePayload(ByteBufferReader $in) : void{
-		$this->blockPosition = CommonTypes::getBlockPosition($in);
+		$this->blockPosition = CommonTypes::getBlockPosition($in, true);
 		$this->eventType = VarInt::readSignedInt($in);
 		$this->eventData = VarInt::readSignedInt($in);
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
-		CommonTypes::putBlockPosition($out, $this->blockPosition);
+		CommonTypes::putBlockPosition($out, $this->blockPosition, true);
 		VarInt::writeSignedInt($out, $this->eventType);
 		VarInt::writeSignedInt($out, $this->eventData);
 	}

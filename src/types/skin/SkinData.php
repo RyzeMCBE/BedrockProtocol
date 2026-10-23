@@ -19,6 +19,8 @@ use Ramsey\Uuid\Uuid;
 
 class SkinData{
 
+	public const GEOMETRY_DATA_NONE = "{}";
+
 	public const ARM_SIZE_SLIM = "slim";
 	public const ARM_SIZE_WIDE = "wide";
 
@@ -37,7 +39,7 @@ class SkinData{
 		private SkinImage $skinImage,
 		private array $animations = [],
 		?SkinImage $capeImage = null,
-		private string $geometryData = "",
+		private string $geometryData = self::GEOMETRY_DATA_NONE,
 		private string $geometryDataEngineVersion = ProtocolInfo::MINECRAFT_VERSION_NETWORK,
 		private string $animationData = "",
 		private string $capeId = "",
@@ -51,7 +53,9 @@ class SkinData{
 		private bool $persona = false,
 		private bool $personaCapeOnClassic = false,
 		private bool $isPrimaryUser = true,
-		private bool $override = true
+		private bool $override = true,
+		private ?string $trustedSkinFlag = null,
+		private string $profileHash = ""
 	){
 		$this->capeImage = $capeImage ?? new SkinImage(0, 0, "");
 		//this has to be unique or the client will do stupid things
@@ -141,6 +145,14 @@ class SkinData{
 
 	public function isVerified() : bool{
 		return $this->isVerified;
+	}
+
+	public function getTrustedSkinFlag() : string{
+		return $this->trustedSkinFlag ?? ($this->isVerified ? "true" : "false");
+	}
+
+	public function getProfileHash() : string{
+		return $this->profileHash;
 	}
 
 	/**

@@ -182,7 +182,6 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		$this->enableClientSideChunkGeneration = CommonTypes::getBool($in);
 		$this->blockNetworkIdsAreHashes = CommonTypes::getBool($in);
 		$this->networkPermissions = NetworkPermissions::decode($in);
-		$this->isLoggingChat = CommonTypes::getBool($in);
 		$this->serverJoinInformation = CommonTypes::readOptional($in, ServerJoinInformation::read(...));
 		$this->serverTelemetryData = ServerTelemetryData::read($in);
 	}
@@ -223,7 +222,6 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		CommonTypes::putBool($out, $this->enableClientSideChunkGeneration);
 		CommonTypes::putBool($out, $this->blockNetworkIdsAreHashes);
 		$this->networkPermissions->encode($out);
-		CommonTypes::putBool($out, $this->isLoggingChat);
 		CommonTypes::writeOptional($out, $this->serverJoinInformation, fn(ByteBufferWriter $out, ServerJoinInformation $info) => $info->write($out));
 		$this->serverTelemetryData->write($out);
 	}

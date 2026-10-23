@@ -68,7 +68,6 @@ class SubChunkRequestPacket extends DataPacket implements ServerboundPacket{
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
 		VarInt::writeSignedInt($out, $this->dimension);
-
 		VarInt::writeUnsignedInt($out, count($this->entries));
 		foreach($this->entries as $entry){
 			$entry->write($out);

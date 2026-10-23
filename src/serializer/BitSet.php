@@ -21,6 +21,7 @@ use function array_slice;
 use function array_values;
 use function count;
 use function intdiv;
+use const PHP_INT_SIZE;
 
 class BitSet{
 	private const INT_BITS = PHP_INT_SIZE * 8;
@@ -84,6 +85,13 @@ class BitSet{
 		return count($this->parts);
 	}
 
+	/**
+	 * @return int[]
+	 */
+	public function getParts() : array{
+		return $this->parts;
+	}
+
 	private static function getExpectedPartsCount(int $length) : int{
 		return intdiv($length + self::INT_BITS - 1, self::INT_BITS);
 	}
@@ -115,9 +123,13 @@ class BitSet{
 		return new self($length, array_slice($result, 0, self::getExpectedPartsCount($length)));
 	}
 
-	public function write(ByteBufferWriter $out) : void{
+	public function write(ByteBufferWriter $out, ?int $length = null) : void{
 		$parts = $this->parts;
-		$length = $this->length;
+		$length ??= $this->length;
+
+		if($length > $this->length){
+			throw new \InvalidArgumentException("Cannot write more bits than the BitSet contains");
+		}
 
 		$currentIndex = 0;
 		$currentShift = 0;

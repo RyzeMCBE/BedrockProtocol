@@ -60,7 +60,7 @@ class ClientCacheBlobStatusPacket extends DataPacket implements ServerboundPacke
 			$this->missHashes[] = LE::readUnsignedLong($in);
 		}
 		$hitCount = VarInt::readUnsignedInt($in);
-		for($i = 0; $i < $hitCount; ++$i){
+		for($i = 0; $i < ($hitCount); ++$i){
 			$this->hitHashes[] = LE::readUnsignedLong($in);
 		}
 	}

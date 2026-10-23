@@ -15,10 +15,10 @@ declare(strict_types=1);
 namespace pocketmine\network\mcpe\protocol\types\command;
 
 final class ConstrainedEnumValue{
-	public const REQUIRES_CHEATS_ENABLED = 1 << 0;
-	public const REQUIRES_ELEVATED_PERMISSIONS = 1 << 1;
-	public const REQUIRES_HOST_PERMISSIONS = 1 << 2;
-	public const REQUIRES_ALLOW_ALIASES = 1 << 3;
+	public const REQUIRES_CHEATS_ENABLED = 1;
+	public const REQUIRES_ELEVATED_PERMISSIONS = 2;
+	public const REQUIRES_HOST_PERMISSIONS = 4;
+	public const REQUIRES_ALLOW_ALIASES = 8;
 
 	/**
 	 * @param int[] $constraints

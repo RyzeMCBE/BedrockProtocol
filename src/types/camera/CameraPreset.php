@@ -20,6 +20,7 @@ use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
 use pocketmine\math\Vector2;
 use pocketmine\math\Vector3;
+use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use pocketmine\network\mcpe\protocol\types\ControlScheme;
 
@@ -48,8 +49,11 @@ final class CameraPreset{
 		private ?float $yawLimitMax,
 		private ?int $audioListenerType,
 		private ?bool $playerEffects,
+		private ?bool $alignTargetAndCameraForward,
 		private ?CameraPresetAimAssist $aimAssist,
 		private ?ControlScheme $controlScheme,
+		private bool $applyInheritedStartingRotation = false,
+		private ?Vector2 $startingRotation = null,
 	){}
 
 	public function getName() : string{ return $this->name; }
@@ -92,9 +96,13 @@ final class CameraPreset{
 
 	public function getPlayerEffects() : ?bool{ return $this->playerEffects; }
 
+	public function getAlignTargetAndCameraForward() : ?bool{ return $this->alignTargetAndCameraForward; }
+
 	public function getAimAssist() : ?CameraPresetAimAssist{ return $this->aimAssist; }
 
 	public function getControlScheme() : ?ControlScheme{ return $this->controlScheme; }
+	public function getApplyInheritedStartingRotation() : bool{ return $this->applyInheritedStartingRotation; }
+	public function getStartingRotation() : ?Vector2{ return $this->startingRotation; }
 
 	public static function read(ByteBufferReader $in) : self{
 		$name = CommonTypes::getString($in);
@@ -120,6 +128,11 @@ final class CameraPreset{
 		$aimAssist = CommonTypes::readOptional($in, fn() => CameraPresetAimAssist::read($in));
 		$controlScheme = CommonTypes::readOptional($in, fn() => ControlScheme::fromPacket(Byte::readUnsigned($in)));
 
+		$applyInheritedStartingRotation = false;
+		$startingRotation = null;
+		$applyInheritedStartingRotation = CommonTypes::getBool($in);
+		$startingRotation = CommonTypes::getVector2($in);
+
 		return new self(
 			$name,
 			$parent,
@@ -128,21 +141,56 @@ final class CameraPreset{
 			$zPosition,
 			$pitch,
 			$yaw,
-			$rotationSpeed,
-			$snapToTarget,
-			$horizontalRotationLimit,
-			$verticalRotationLimit,
-			$continueTargeting,
-			$blockListeningRadius,
-			$viewOffset,
-			$entityOffset,
-			$radius,
-			$yawLimitMin,
-			$yawLimitMax,
+			$rotationSpeed ?? null,
+			$snapToTarget ?? null,
+			$horizontalRotationLimit ?? null,
+			$verticalRotationLimit ?? null,
+			$continueTargeting ?? null,
+			$blockListeningRadius ?? null,
+			$viewOffset ?? null,
+			$entityOffset ?? null,
+			$radius ?? null,
+			$yawLimitMin ?? null,
+			$yawLimitMax ?? null,
 			$audioListenerType,
 			$playerEffects,
-			$aimAssist,
-			$controlScheme
+			null,
+			$aimAssist ?? null,
+			$controlScheme ?? null,
+			$applyInheritedStartingRotation,
+			$startingRotation,
+		);
+	}
+
+	public static function fromNBT(CompoundTag $nbt) : self{
+		return new self(
+			$nbt->getString("identifier"),
+			$nbt->getString("inherit_from"),
+			$nbt->getTag("pos_x") === null ? null : $nbt->getFloat("pos_x"),
+			$nbt->getTag("pos_y") === null ? null : $nbt->getFloat("pos_y"),
+			$nbt->getTag("pos_z") === null ? null : $nbt->getFloat("pos_z"),
+			$nbt->getTag("rot_x") === null ? null : $nbt->getFloat("rot_x"),
+			$nbt->getTag("rot_y") === null ? null : $nbt->getFloat("rot_y"),
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			$nbt->getTag("audio_listener_type") === null ? null : match ($nbt->getString("audio_listener_type")){
+				"camera" => self::AUDIO_LISTENER_TYPE_CAMERA,
+				"player" => self::AUDIO_LISTENER_TYPE_PLAYER,
+				default => throw new \InvalidArgumentException("Invalid audio listener type: " . $nbt->getString("audio_listener_type")),
+			},
+			$nbt->getTag("player_effects") === null ? null : $nbt->getByte("player_effects") !== 0,
+			null,
+			null,
+			null,
 		);
 	}
 
@@ -169,5 +217,41 @@ final class CameraPreset{
 		CommonTypes::writeOptional($out, $this->playerEffects, CommonTypes::putBool(...));
 		CommonTypes::writeOptional($out, $this->aimAssist, fn(ByteBufferWriter $out, CameraPresetAimAssist $v) => $v->write($out));
 		CommonTypes::writeOptional($out, $this->controlScheme, fn(ByteBufferWriter $out, ControlScheme $v) => Byte::writeUnsigned($out, $v->value));
+		CommonTypes::putBool($out, $this->applyInheritedStartingRotation);
+		CommonTypes::putVector2($out, $this->startingRotation ?? new Vector2(0, 0));
+
+	}
+
+	public function toNBT() : CompoundTag
+	{
+		$nbt = CompoundTag::create()
+			->setString("identifier", $this->name)
+			->setString("inherit_from", $this->parent);
+		if($this->xPosition !== null){
+			$nbt->setFloat("pos_x", $this->xPosition);
+		}
+		if($this->yPosition !== null){
+			$nbt->setFloat("pos_y", $this->yPosition);
+		}
+		if($this->zPosition !== null){
+			$nbt->setFloat("pos_z", $this->zPosition);
+		}
+		if($this->pitch !== null){
+			$nbt->setFloat("rot_x", $this->pitch);
+		}
+		if($this->yaw !== null){
+			$nbt->setFloat("rot_y", $this->yaw);
+		}
+		if($this->audioListenerType !== null){
+				$nbt->setString("audio_listener_type", match($this->audioListenerType){
+					self::AUDIO_LISTENER_TYPE_CAMERA => "camera",
+					self::AUDIO_LISTENER_TYPE_PLAYER => "player",
+					default => throw new \InvalidArgumentException("Invalid audio listener type: $this->audioListenerType"),
+				});
+			}
+		if($this->playerEffects !== null){
+				$nbt->setByte("player_effects", (int) $this->playerEffects);
+			}
+		return $nbt;
 	}
 }

@@ -28,6 +28,8 @@ class AnimatePacket extends DataPacket implements ClientboundPacket, Serverbound
 	public const ACTION_STOP_SLEEP = 3;
 	public const ACTION_CRITICAL_HIT = 4;
 	public const ACTION_MAGICAL_CRITICAL_HIT = 5;
+	public const ACTION_ROW_RIGHT = 128;
+	public const ACTION_ROW_LEFT = 129;
 
 	public int $action;
 	public int $actorRuntimeId;
@@ -40,6 +42,16 @@ class AnimatePacket extends DataPacket implements ClientboundPacket, Serverbound
 		$result->action = $action;
 		$result->data = $data;
 		$result->swingSource = $swingSource;
+		return $result;
+	}
+
+	public static function boatHack(int $actorRuntimeId, int $action, float $data) : self{
+		if($action !== self::ACTION_ROW_LEFT && $action !== self::ACTION_ROW_RIGHT){
+			throw new \InvalidArgumentException("Invalid actionId for boatHack: $action");
+		}
+
+		$result = self::create($actorRuntimeId, $action);
+		$result->data = $data;
 		return $result;
 	}
 

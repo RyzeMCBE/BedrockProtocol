@@ -71,7 +71,7 @@ class LevelSoundEventPacket extends DataPacket implements ClientboundPacket, Ser
 		$this->entityType = CommonTypes::getString($in);
 		$this->isBabyMob = CommonTypes::getBool($in);
 		$this->disableRelativeVolume = CommonTypes::getBool($in);
-		$this->actorUniqueId = LE::readSignedLong($in); //WHY IS THIS NON-STANDARD?
+		$this->actorUniqueId = LE::readSignedLong($in);
 		$this->firePosition = CommonTypes::readOptional($in, CommonTypes::getVector3(...));
 	}
 

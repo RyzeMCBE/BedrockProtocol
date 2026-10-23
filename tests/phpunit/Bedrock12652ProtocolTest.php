@@ -32,12 +32,15 @@ use pocketmine\network\mcpe\protocol\types\inventory\CreativeItemEntry;
 use pocketmine\network\mcpe\protocol\types\inventory\FullContainerName;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStack;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
+use pocketmine\network\mcpe\protocol\types\inventory\PredictedResult;
 use pocketmine\network\mcpe\protocol\types\inventory\stackrequest\CraftRecipeAutoStackRequestAction;
 use pocketmine\network\mcpe\protocol\types\inventory\stackrequest\DeprecatedCraftingResultsStackRequestAction;
 use pocketmine\network\mcpe\protocol\types\inventory\stackrequest\ItemStackRequest;
 use pocketmine\network\mcpe\protocol\types\inventory\stackrequest\MineBlockStackRequestAction;
 use pocketmine\network\mcpe\protocol\types\inventory\stackresponse\ItemStackResponse;
 use pocketmine\network\mcpe\protocol\types\inventory\stackresponse\ItemStackResponseSlotInfo;
+use pocketmine\network\mcpe\protocol\types\inventory\TriggerType;
+use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\types\login\clientdata\ClientData;
 use pocketmine\network\mcpe\protocol\types\login\clientdata\ClientDataToSkinDataHelper;
 use pocketmine\network\mcpe\protocol\types\MapDecoration;
@@ -68,6 +71,7 @@ use pocketmine\network\mcpe\protocol\types\SubChunkPosition;
 use pocketmine\network\mcpe\protocol\types\SubChunkPositionOffset;
 use pocketmine\network\mcpe\protocol\types\SubChunkRequestResult;
 use pocketmine\network\mcpe\protocol\types\SystemCategory;
+use pocketmine\network\mcpe\protocol\types\UpdateSubChunkBlocksPacketEntry;
 use Ramsey\Uuid\Uuid;
 use function array_fill;
 use function base64_encode;
@@ -77,6 +81,35 @@ use function str_repeat;
 use function strlen;
 final class Bedrock12652ProtocolTest extends TestCase
 {
+	public function testSignedBlockHashesRetainTheirIdentityOnTheWire() : void{
+		foreach([-2144268767, -1, 0, 2147483647] as $hash){
+			$stack = new ItemStack(1, 0, 1, $hash, "");
+			$out = new ByteBufferWriter();
+			CommonTypes::putItemStackWrapper($out, new ItemStackWrapper(1, $stack));
+			$decoded = CommonTypes::getItemStackWrapper(new ByteBufferReader($out->getData()))->getItemStack();
+			self::assertSame($hash, $decoded->getBlockRuntimeId());
+			if($hash === -2144268767){
+				self::assertSame('01000100000102a19cc4810800', bin2hex($out->getData()));
+			}
+			$packet = UpdateBlockPacket::create(new BlockPosition(0, 64, 0), $hash, 0, 0);
+			$out = new ByteBufferWriter();
+			$packet->encode($out);
+			$decodedPacket = new UpdateBlockPacket();
+			$decodedPacket->decode(new ByteBufferReader($out->getData()));
+			self::assertSame($hash, $decodedPacket->blockRuntimeId);
+			$entry = new UpdateSubChunkBlocksPacketEntry(new BlockPosition(0, 64, 0), $hash, 0, 0, 0);
+			$out = new ByteBufferWriter();
+			$entry->write($out);
+			self::assertSame($hash, UpdateSubChunkBlocksPacketEntry::read(new ByteBufferReader($out->getData()))->getBlockRuntimeId());
+			$transaction = UseItemTransactionData::new([], UseItemTransactionData::ACTION_CLICK_BLOCK, TriggerType::PLAYER_INPUT, new BlockPosition(0, 64, 0), 1, 0, new ItemStackWrapper(1, $stack), new Vector3(0, 65, 0), new Vector3(0, 1, 0), $hash, PredictedResult::SUCCESS, 0);
+			$out = new ByteBufferWriter();
+			$transaction->encodeTransaction($out);
+			$decodedTransaction = new UseItemTransactionData();
+			$decodedTransaction->decodeTransaction(new ByteBufferReader($out->getData()));
+			self::assertSame($hash, $decodedTransaction->getBlockRuntimeId());
+		}
+	}
+
 	private static function encodePacket(DataPacket $packet) : string
 	{
 		$out = new ByteBufferWriter();

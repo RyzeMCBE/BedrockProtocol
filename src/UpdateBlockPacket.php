@@ -19,6 +19,7 @@ use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use pocketmine\network\mcpe\protocol\types\BlockPosition;
+use pocketmine\utils\Binary;
 
 class UpdateBlockPacket extends DataPacket implements ClientboundPacket{
 	public const NETWORK_ID = ProtocolInfo::UPDATE_BLOCK_PACKET;
@@ -56,7 +57,7 @@ class UpdateBlockPacket extends DataPacket implements ClientboundPacket{
 
 	protected function decodePayload(ByteBufferReader $in) : void{
 		$this->blockPosition = CommonTypes::getBlockPosition($in, true);
-		$this->blockRuntimeId = VarInt::readUnsignedInt($in);
+		$this->blockRuntimeId = Binary::signInt(VarInt::readUnsignedInt($in));
 		$this->flags = VarInt::readUnsignedInt($in);
 		$this->dataLayerId = VarInt::readUnsignedInt($in);
 	}

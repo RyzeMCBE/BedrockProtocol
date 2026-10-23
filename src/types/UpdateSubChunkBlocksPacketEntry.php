@@ -19,6 +19,7 @@ use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
+use pocketmine\utils\Binary;
 
 final class UpdateSubChunkBlocksPacketEntry{
 	public function __construct(
@@ -46,7 +47,7 @@ final class UpdateSubChunkBlocksPacketEntry{
 
 	public static function read(ByteBufferReader $in) : UpdateSubChunkBlocksPacketEntry{
 		$blockPosition = CommonTypes::getBlockPosition($in, true);
-		$blockRuntimeId = VarInt::readUnsignedInt($in);
+		$blockRuntimeId = Binary::signInt(VarInt::readUnsignedInt($in));
 		$updateFlags = VarInt::readUnsignedInt($in);
 		$syncedUpdateActorUniqueId = VarInt::readUnsignedLong($in); //this can't use the standard method because it's unsigned as opposed to the usual signed... !!!!!!
 		$syncedUpdateType = VarInt::readUnsignedInt($in); //this isn't even consistent with UpdateBlockSyncedPacket?!

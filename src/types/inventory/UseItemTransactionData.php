@@ -23,6 +23,7 @@ use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use pocketmine\network\mcpe\protocol\types\BlockPosition;
 use pocketmine\network\mcpe\protocol\types\GetTypeIdFromConstTrait;
+use pocketmine\utils\Binary;
 
 class UseItemTransactionData extends TransactionData{
 	use GetTypeIdFromConstTrait;
@@ -97,7 +98,7 @@ class UseItemTransactionData extends TransactionData{
 		$this->itemInHand = CommonTypes::getItemStackWrapper($in);
 		$this->playerPosition = CommonTypes::getVector3($in);
 		$this->clickPosition = CommonTypes::getVector3($in);
-		$this->blockRuntimeId = VarInt::readUnsignedInt($in);
+		$this->blockRuntimeId = Binary::signInt(VarInt::readUnsignedInt($in));
 		$this->clientInteractPrediction = PredictedResult::fromPacket(Byte::readUnsigned($in));
 		$this->clientCooldownState = Byte::readUnsigned($in);
 	}

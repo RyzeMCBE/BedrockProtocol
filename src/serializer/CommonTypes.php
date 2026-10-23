@@ -325,7 +325,7 @@ final class CommonTypes{
 		$meta = VarInt::readUnsignedInt($in);
 		$hasNetId = self::getBool($in);
 		$stackId = $hasNetId ? VarInt::readSignedInt($in) : 0;
-		$blockRuntimeId = VarInt::readUnsignedInt($in);
+		$blockRuntimeId = Binary::signInt(VarInt::readUnsignedInt($in));
 		$rawExtraData = self::getString($in);
 		return new ItemStackWrapper($stackId, new ItemStack($id, $meta, $count, $blockRuntimeId, $rawExtraData));
 	}
@@ -358,7 +358,7 @@ final class CommonTypes{
 			$stackId = 0;
 		}
 
-		$blockRuntimeId = VarInt::readUnsignedInt($in);
+		$blockRuntimeId = Binary::signInt(VarInt::readUnsignedInt($in));
 		$rawExtraData = self::getString($in);
 
 		return new ItemStackWrapper($stackId, new ItemStack($id, $meta, $count, $blockRuntimeId, $rawExtraData), $variant);

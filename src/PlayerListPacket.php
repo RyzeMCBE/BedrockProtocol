@@ -60,10 +60,20 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 	}
 
 	protected function decodePayload(ByteBufferReader $in) : void{
-		$this->type = Byte::readUnsigned($in);
+		$this->type = self::TYPE_ADD;
 		$count = VarInt::readUnsignedInt($in);
 		for($i = 0; $i < $count; ++$i){
 			$entry = new PlayerListEntry();
+			$outerType = VarInt::readUnsignedInt($in);
+			$innerType = Byte::readUnsigned($in);
+			if(($outerType !== 0 && $outerType !== 1) || $innerType !== 1 - $outerType){
+					throw new PacketDecodeException("Unexpected player list entry type $outerType/$innerType");
+				}
+			$entryType = $outerType === 1 ? self::TYPE_ADD : self::TYPE_REMOVE;
+			if($i > 0 && $entryType !== $this->type){
+					throw new PacketDecodeException("Mixed player list entry types are not supported");
+				}
+			$this->type = $entryType;
 
 			if($this->type === self::TYPE_ADD){
 				$entry->uuid = CommonTypes::getUUID($in);
@@ -83,17 +93,14 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 
 			$this->entries[$i] = $entry;
 		}
-		if($this->type === self::TYPE_ADD){
-			for($i = 0; $i < $count; ++$i){
-				$this->entries[$i]->skinData->setVerified(CommonTypes::getBool($in));
-			}
-		}
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
-		Byte::writeUnsigned($out, $this->type);
 		VarInt::writeUnsignedInt($out, count($this->entries));
 		foreach($this->entries as $entry){
+			$outerType = $this->type === self::TYPE_ADD ? 1 : 0;
+			VarInt::writeUnsignedInt($out, $outerType);
+			Byte::writeUnsigned($out, 1 - $outerType);
 			if($this->type === self::TYPE_ADD){
 				CommonTypes::putUUID($out, $entry->uuid);
 				CommonTypes::putActorUniqueId($out, $entry->actorUniqueId);
@@ -108,11 +115,6 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 				LE::writeUnsignedInt($out, ($entry->color ?? new Color(255, 255, 255))->toARGB());
 			}else{
 				CommonTypes::putUUID($out, $entry->uuid);
-			}
-		}
-		if($this->type === self::TYPE_ADD){
-			foreach($this->entries as $entry){
-				CommonTypes::putBool($out, $entry->skinData->isVerified());
 			}
 		}
 	}

@@ -107,7 +107,6 @@ class TextPacket extends DataPacket implements ClientboundPacket, ServerboundPac
 
 	protected function decodePayload(ByteBufferReader $in) : void{
 		$this->needsTranslation = CommonTypes::getBool($in);
-
 		$category = Byte::readUnsigned($in);
 		$this->type = Byte::readUnsigned($in);
 		switch($this->type){
@@ -153,32 +152,29 @@ class TextPacket extends DataPacket implements ClientboundPacket, ServerboundPac
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
 		CommonTypes::putBool($out, $this->needsTranslation);
-
 		$category = match ($this->type) {
-			self::TYPE_RAW,
-			self::TYPE_TIP,
-			self::TYPE_SYSTEM,
-			self::TYPE_JSON_WHISPER,
-			self::TYPE_JSON_ANNOUNCEMENT,
-			self::TYPE_JSON => self::CATEGORY_MESSAGE_ONLY,
+				self::TYPE_RAW,
+				self::TYPE_TIP,
+				self::TYPE_SYSTEM,
+				self::TYPE_JSON_WHISPER,
+				self::TYPE_JSON_ANNOUNCEMENT,
+				self::TYPE_JSON => self::CATEGORY_MESSAGE_ONLY,
 
-			self::TYPE_CHAT,
-			self::TYPE_WHISPER,
-			self::TYPE_ANNOUNCEMENT => self::CATEGORY_AUTHORED_MESSAGE,
+				self::TYPE_CHAT,
+				self::TYPE_WHISPER,
+				self::TYPE_ANNOUNCEMENT => self::CATEGORY_AUTHORED_MESSAGE,
 
-			self::TYPE_TRANSLATION,
-			self::TYPE_POPUP,
-			self::TYPE_JUKEBOX_POPUP => self::CATEGORY_MESSAGE_WITH_PARAMETERS,
+				self::TYPE_TRANSLATION,
+				self::TYPE_POPUP,
+				self::TYPE_JUKEBOX_POPUP => self::CATEGORY_MESSAGE_WITH_PARAMETERS,
 
-			default => throw new \LogicException("Invalid TextPacket type: $this->type")
-		};
-
+				default => throw new \LogicException("Invalid TextPacket type: $this->type")
+			};
 		Byte::writeUnsigned($out, $category);
 		Byte::writeUnsigned($out, $this->type);
 		switch($this->type){
 			case self::TYPE_CHAT:
 			case self::TYPE_WHISPER:
-			/** @noinspection PhpMissingBreakStatementInspection */
 			case self::TYPE_ANNOUNCEMENT:
 				CommonTypes::putString($out, $this->sourceName);
 			case self::TYPE_RAW:

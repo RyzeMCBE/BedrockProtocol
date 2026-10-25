@@ -39,12 +39,12 @@ class BlockActorDataPacket extends DataPacket implements ClientboundPacket, Serv
 	}
 
 	protected function decodePayload(ByteBufferReader $in) : void{
-		$this->blockPosition = CommonTypes::getBlockPosition($in);
+		$this->blockPosition = CommonTypes::getBlockPosition($in, true);
 		$this->nbt = new CacheableNbt(CommonTypes::getNbtCompoundRoot($in));
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
-		CommonTypes::putBlockPosition($out, $this->blockPosition);
+		CommonTypes::putBlockPosition($out, $this->blockPosition, true);
 		$out->writeByteArray($this->nbt->getEncodedNbt());
 	}
 

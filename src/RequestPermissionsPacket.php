@@ -27,14 +27,14 @@ use pocketmine\network\mcpe\protocol\types\PlayerPermissions;
 class RequestPermissionsPacket extends DataPacket implements ServerboundPacket{
 	public const NETWORK_ID = ProtocolInfo::REQUEST_PERMISSIONS_PACKET;
 
-	public const FLAG_BUILD = 1 << 0;
-	public const FLAG_MINE = 1 << 1;
-	public const FLAG_DOORS_AND_SWITCHES = 1 << 2;
-	public const FLAG_OPEN_CONTAINERS = 1 << 3;
-	public const FLAG_ATTACK_PLAYERS = 1 << 4;
-	public const FLAG_ATTACK_MOBS = 1 << 5;
-	public const FLAG_OPERATOR = 1 << 6;
-	public const FLAG_TELEPORT = 1 << 7;
+	public const FLAG_BUILD = 1;
+	public const FLAG_MINE = 2;
+	public const FLAG_DOORS_AND_SWITCHES = 4;
+	public const FLAG_OPEN_CONTAINERS = 8;
+	public const FLAG_ATTACK_PLAYERS = 16;
+	public const FLAG_ATTACK_MOBS = 32;
+	public const FLAG_OPERATOR = 64;
+	public const FLAG_TELEPORT = 128;
 
 	private int $targetActorUniqueId;
 	/** @see PlayerPermissions */

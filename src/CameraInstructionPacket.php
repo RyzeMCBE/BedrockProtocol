@@ -17,6 +17,7 @@ namespace pocketmine\network\mcpe\protocol;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
+use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use pocketmine\network\mcpe\protocol\types\camera\CameraFadeInstruction;
 use pocketmine\network\mcpe\protocol\types\camera\CameraFovInstruction;
@@ -82,19 +83,32 @@ class CameraInstructionPacket extends DataPacket implements ClientboundPacket{
 
 	public function getDetachFromEntity() : ?bool{ return $this->detachFromEntity; }
 
-	protected function decodePayload(ByteBufferReader $in) : void{
-		$this->set = CommonTypes::readOptional($in, CameraSetInstruction::read(...));
+	protected function decodePayload(ByteBufferReader $in) : void
+	{
+		$this->set = CommonTypes::readOptional($in, fn(ByteBufferReader $in) => CameraSetInstruction::read($in));
 		$this->clear = CommonTypes::readOptional($in, CommonTypes::getBool(...));
 		$this->fade = CommonTypes::readOptional($in, CameraFadeInstruction::read(...));
 		$this->target = CommonTypes::readOptional($in, CameraTargetInstruction::read(...));
 		$this->removeTarget = CommonTypes::readOptional($in, CommonTypes::getBool(...));
-		$this->fieldOfView = CommonTypes::readOptional($in, CameraFovInstruction::read(...));
-		$this->spline = CommonTypes::readOptional($in, CameraSplineInstruction::read(...));
-		$this->attachToEntity = CommonTypes::readOptional($in, LE::readSignedLong(...)); //WHY IS THIS NON-STANDARD?
+		$this->fieldOfView = CommonTypes::readOptional($in, fn(ByteBufferReader $in) => CameraFovInstruction::read($in));
+		$this->spline = CommonTypes::readOptional($in, fn(ByteBufferReader $in) => CameraSplineInstruction::read($in));
+		$this->attachToEntity = CommonTypes::readOptional($in, LE::readSignedLong(...));
+		//WHY IS THIS NON-STANDARD?
 		$this->detachFromEntity = CommonTypes::readOptional($in, CommonTypes::getBool(...));
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function fromNBT(CompoundTag $nbt) : void{
+		$setTag = $nbt->getCompoundTag("set");
+		$this->set = $setTag === null ? null : CameraSetInstruction::fromNBT($setTag);
+
+		$this->clear = $nbt->getTag("clear") === null ? null : $nbt->getByte("clear") !== 0;
+
+		$fadeTag = $nbt->getCompoundTag("fade");
+		$this->fade = $fadeTag === null ? null : CameraFadeInstruction::fromNBT($fadeTag);
+	}
+
+	protected function encodePayload(ByteBufferWriter $out) : void
+	{
 		CommonTypes::writeOptional($out, $this->set, fn(ByteBufferWriter $out, CameraSetInstruction $v) => $v->write($out));
 		CommonTypes::writeOptional($out, $this->clear, CommonTypes::putBool(...));
 		CommonTypes::writeOptional($out, $this->fade, fn(ByteBufferWriter $out, CameraFadeInstruction $v) => $v->write($out));
@@ -102,8 +116,25 @@ class CameraInstructionPacket extends DataPacket implements ClientboundPacket{
 		CommonTypes::writeOptional($out, $this->removeTarget, CommonTypes::putBool(...));
 		CommonTypes::writeOptional($out, $this->fieldOfView, fn(ByteBufferWriter $out, CameraFovInstruction $v) => $v->write($out));
 		CommonTypes::writeOptional($out, $this->spline, fn(ByteBufferWriter $out, CameraSplineInstruction $v) => $v->write($out));
-		CommonTypes::writeOptional($out, $this->attachToEntity, LE::writeSignedLong(...)); //WHY IS THIS NON-STANDARD?
+		CommonTypes::writeOptional($out, $this->attachToEntity, LE::writeSignedLong(...));
+		//WHY IS THIS NON-STANDARD?
 		CommonTypes::writeOptional($out, $this->detachFromEntity, CommonTypes::putBool(...));
+	}
+
+	protected function toNBT() : CompoundTag{
+		$nbt = CompoundTag::create();
+
+		if($this->set !== null){
+			$nbt->setTag("set", $this->set->toNBT());
+		}
+		if($this->clear !== null){
+			$nbt->setByte("clear", (int) $this->clear);
+		}
+		if($this->fade !== null){
+			$nbt->setTag("fade", $this->fade->toNBT());
+		}
+
+		return $nbt;
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

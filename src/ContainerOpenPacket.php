@@ -51,14 +51,14 @@ class ContainerOpenPacket extends DataPacket implements ClientboundPacket{
 	protected function decodePayload(ByteBufferReader $in) : void{
 		$this->windowId = Byte::readUnsigned($in);
 		$this->windowType = Byte::readUnsigned($in);
-		$this->blockPosition = CommonTypes::getBlockPosition($in);
+		$this->blockPosition = CommonTypes::getBlockPosition($in, true);
 		$this->actorUniqueId = CommonTypes::getActorUniqueId($in);
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
 		Byte::writeUnsigned($out, $this->windowId);
 		Byte::writeUnsigned($out, $this->windowType);
-		CommonTypes::putBlockPosition($out, $this->blockPosition);
+		CommonTypes::putBlockPosition($out, $this->blockPosition, true);
 		CommonTypes::putActorUniqueId($out, $this->actorUniqueId);
 	}
 

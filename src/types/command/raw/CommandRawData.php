@@ -70,8 +70,8 @@ final class CommandRawData{
 
 		$chainedSubCommandDataIndexes = [];
 		for($i = 0, $size = VarInt::readUnsignedInt($in); $i < $size; $i++){
-			$chainedSubCommandDataIndexes[] = LE::readUnsignedInt($in);
-		}
+				$chainedSubCommandDataIndexes[] = LE::readUnsignedInt($in);
+			}
 
 		$overloads = [];
 		for($i = 0, $size = VarInt::readUnsignedInt($in); $i < $size; $i++){
@@ -95,11 +95,10 @@ final class CommandRawData{
 		LE::writeUnsignedShort($out, $this->flags);
 		CommonTypes::putString($out, $this->permission);
 		LE::writeSignedInt($out, $this->aliasEnumIndex);
-
 		VarInt::writeUnsignedInt($out, count($this->chainedSubCommandDataIndexes));
 		foreach($this->chainedSubCommandDataIndexes as $index){
-			LE::writeUnsignedInt($out, $index);
-		}
+				LE::writeUnsignedInt($out, $index);
+			}
 
 		VarInt::writeUnsignedInt($out, count($this->overloads));
 		foreach($this->overloads as $overload){

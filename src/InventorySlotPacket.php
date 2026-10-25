@@ -46,17 +46,17 @@ class InventorySlotPacket extends DataPacket implements ClientboundPacket{
 	protected function decodePayload(ByteBufferReader $in) : void{
 		$this->windowId = VarInt::readUnsignedInt($in);
 		$this->inventorySlot = VarInt::readUnsignedInt($in);
-		$this->containerName = CommonTypes::readOptional($in, FullContainerName::read(...));
-		$this->storage = CommonTypes::readOptional($in, CommonTypes::getNetworkItemStackDescriptor(...));
-		$this->item = CommonTypes::getNetworkItemStackDescriptor($in);
+		$this->containerName = CommonTypes::readOptional($in, fn(ByteBufferReader $in) => FullContainerName::read($in));
+		$this->storage = CommonTypes::readOptional($in, fn(ByteBufferReader $in) => CommonTypes::getItemStackWrapper($in));
+		$this->item = CommonTypes::getItemStackWrapper($in);
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
 		VarInt::writeUnsignedInt($out, $this->windowId);
 		VarInt::writeUnsignedInt($out, $this->inventorySlot);
 		CommonTypes::writeOptional($out, $this->containerName, fn(ByteBufferWriter $out, FullContainerName $v) => $v->write($out));
-		CommonTypes::writeOptional($out, $this->storage, CommonTypes::putNetworkItemStackDescriptor(...));
-		CommonTypes::putNetworkItemStackDescriptor($out, $this->item);
+		CommonTypes::writeOptional($out, $this->storage, fn(ByteBufferWriter $out, ItemStackWrapper $item) => CommonTypes::putItemStackWrapper($out, $item));
+		CommonTypes::putItemStackWrapper($out, $this->item);
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

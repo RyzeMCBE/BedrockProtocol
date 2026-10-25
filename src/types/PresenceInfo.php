@@ -38,11 +38,11 @@ final class PresenceInfo{
 		$experienceName = CommonTypes::readOptional($in, CommonTypes::getString(...));
 		$worldName = CommonTypes::readOptional($in, CommonTypes::getString(...));
 		$richPresenceId = CommonTypes::getString($in);
-
 		return new self($experienceName, $worldName, $richPresenceId);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
+	public function write(ByteBufferWriter $out) : void
+	{
 		CommonTypes::writeOptional($out, $this->experienceName, CommonTypes::putString(...));
 		CommonTypes::writeOptional($out, $this->worldName, CommonTypes::putString(...));
 		CommonTypes::putString($out, $this->richPresenceId);

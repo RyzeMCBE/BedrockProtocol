@@ -37,27 +37,34 @@ final class RecipeUnlockingRequirement{
 	public function getUnlockingIngredients() : ?array{ return $this->unlockingIngredients; }
 
 	public static function read(ByteBufferReader $in) : self{
-		//I don't know what the point of this structure is. It could easily have been a list<RecipeIngredient> instead.
-		//It's basically just an optional list, which could have been done by an empty list wherever it's not needed.
-		$unlockingContext = CommonTypes::getBool($in);
-		$unlockingIngredients = null;
-		if(!$unlockingContext){
-			$unlockingIngredients = [];
-			for($i = 0, $count = VarInt::readUnsignedInt($in); $i < $count; $i++){
-				$unlockingIngredients[] = CommonTypes::getRecipeIngredient($in);
-			}
-		}
+		$context = VarInt::readSignedInt($in);
 
-		return new self($unlockingIngredients);
+		if($context < 0 || $context > 3){
+				throw new \InvalidArgumentException("Unknown recipe unlocking context $context");
+			}
+		$ingredients = CommonTypes::readOptional($in, static function (ByteBufferReader $in) : array {
+			$result = [];
+			for($i = 0, $count = VarInt::readUnsignedInt($in); $i < $count; ++$i){
+					$result[] = CommonTypes::getRecipeIngredient($in);
+				}
+			return $result;
+		});
+		if($context !== 0 && $ingredients !== null){
+				throw new \InvalidArgumentException("Unlocking ingredients are only allowed for context NONE");
+			}
+
+		return new self($ingredients);
 	}
 
 	public function write(ByteBufferWriter $out) : void{
-		CommonTypes::putBool($out, $this->unlockingIngredients === null);
-		if($this->unlockingIngredients !== null){
-			VarInt::writeUnsignedInt($out, count($this->unlockingIngredients));
-			foreach($this->unlockingIngredients as $ingredient){
-				CommonTypes::putRecipeIngredient($out, $ingredient);
-			}
-		}
+		VarInt::writeSignedInt($out, $this->unlockingIngredients === null ? 1 : 0);
+
+		CommonTypes::writeOptional($out, $this->unlockingIngredients, static function (ByteBufferWriter $out, array $ingredients) : void {
+			VarInt::writeUnsignedInt($out, count($ingredients));
+			foreach($ingredients as $ingredient){
+					CommonTypes::putRecipeIngredient($out, $ingredient);
+				}
+		});
+		return;
 	}
 }

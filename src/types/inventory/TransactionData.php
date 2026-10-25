@@ -57,7 +57,6 @@ abstract class TransactionData{
 		for($i = 0; $i < $actionCount; ++$i){
 			$this->actions[] = (new NetworkInventoryAction())->readAuthInput($in);
 		}
-		$this->decodeData($in);
 	}
 
 	/**
@@ -79,7 +78,6 @@ abstract class TransactionData{
 		foreach($this->actions as $action){
 			$action->writeAuthInput($out);
 		}
-		$this->encodeData($out);
 	}
 
 	abstract protected function encodeData(ByteBufferWriter $out) : void;

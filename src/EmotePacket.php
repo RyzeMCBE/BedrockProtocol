@@ -23,8 +23,8 @@ use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 class EmotePacket extends DataPacket implements ClientboundPacket, ServerboundPacket{
 	public const NETWORK_ID = ProtocolInfo::EMOTE_PACKET;
 
-	public const FLAG_SERVER = 1 << 0;
-	public const FLAG_MUTE_ANNOUNCEMENT = 1 << 1;
+	public const FLAG_SERVER = 1;
+	public const FLAG_MUTE_ANNOUNCEMENT = 2;
 
 	private int $actorRuntimeId;
 	private string $emoteId;

@@ -25,10 +25,13 @@ final class TagItemDescriptor implements ItemDescriptor{
 	public const ID = ItemDescriptorType::TAG;
 
 	public function __construct(
-		private string $tag
+		private string $tag,
+		private int $meta = 32767
 	){}
 
 	public function getTag() : string{ return $this->tag; }
+
+	public function getMeta() : int{ return $this->meta; }
 
 	public static function read(ByteBufferReader $in) : self{
 		$tag = CommonTypes::getString($in);

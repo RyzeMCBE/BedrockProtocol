@@ -41,7 +41,6 @@ class BookEditPacket extends DataPacket implements ServerboundPacket{
 	protected function decodePayload(ByteBufferReader $in) : void{
 		$this->inventorySlot = VarInt::readSignedInt($in);
 		$this->type = VarInt::readUnsignedInt($in);
-
 		switch($this->type){
 			case self::TYPE_REPLACE_PAGE:
 			case self::TYPE_ADD_PAGE:
@@ -69,11 +68,10 @@ class BookEditPacket extends DataPacket implements ServerboundPacket{
 	protected function encodePayload(ByteBufferWriter $out) : void{
 		VarInt::writeSignedInt($out, $this->inventorySlot);
 		VarInt::writeUnsignedInt($out, $this->type);
-
 		switch($this->type){
 			case self::TYPE_REPLACE_PAGE:
 			case self::TYPE_ADD_PAGE:
-				VarInt::writeSignedInt($out, $this->pageNumber);
+				VarInt::writeUnsignedInt($out, $this->pageNumber);
 				CommonTypes::putString($out, $this->text);
 				CommonTypes::putString($out, $this->photoName);
 				break;

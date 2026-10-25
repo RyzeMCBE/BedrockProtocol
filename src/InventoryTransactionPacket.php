@@ -14,7 +14,6 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol;
 
-use pmmp\encoding\Byte;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\VarInt;
@@ -42,7 +41,7 @@ class InventoryTransactionPacket extends DataPacket implements ClientboundPacket
 
 	public int $requestId;
 	/** @var InventoryTransactionChangedSlotsHack[] */
-	public ?array $requestChangedSlots;
+	public ?array $requestChangedSlots = null;
 	public TransactionData $trData;
 
 	/**
@@ -59,22 +58,14 @@ class InventoryTransactionPacket extends DataPacket implements ClientboundPacket
 
 	protected function decodePayload(ByteBufferReader $in) : void{
 		$this->requestId = CommonTypes::readLegacyItemStackRequestId($in);
-
 		$this->requestChangedSlots = CommonTypes::readOptional($in, static function(ByteBufferReader $in) : array{
-			$result = [];
-			for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
-				$result[] = InventoryTransactionChangedSlotsHack::read($in);
-			}
-			return $result;
-		});
-
-		if(Byte::readUnsigned($in) !== 1){
-			throw new PacketDecodeException("Dummy optional bool for transactionType should always be 1");
-		}
+				$result = [];
+				for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
+					$result[] = InventoryTransactionChangedSlotsHack::read($in);
+				}
+				return $result;
+			});
 		$transactionType = VarInt::readUnsignedInt($in);
-		if(Byte::readUnsigned($in) !== 1){
-			throw new PacketDecodeException("Dummy optional bool for trData should always be 1");
-		}
 		$this->trData = match($transactionType) {
 			NormalTransactionData::ID => new NormalTransactionData(),
 			MismatchTransactionData::ID => new MismatchTransactionData(),
@@ -90,15 +81,12 @@ class InventoryTransactionPacket extends DataPacket implements ClientboundPacket
 		CommonTypes::writeLegacyItemStackRequestId($out, $this->requestId);
 
 		CommonTypes::writeOptional($out, $this->requestChangedSlots, static function(ByteBufferWriter $out, array $value) : void{
-			VarInt::writeUnsignedInt($out, count($value));
-			foreach($value as $changedSlots){
-				$changedSlots->write($out);
-			}
-		});
-
-		Byte::writeUnsigned($out, 1);
+				VarInt::writeUnsignedInt($out, count($value));
+				foreach($value as $changedSlots){
+					$changedSlots->write($out);
+				}
+			});
 		VarInt::writeUnsignedInt($out, $this->trData->getTypeId());
-		Byte::writeUnsigned($out, 1);
 		$this->trData->encodeTransaction($out);
 	}
 

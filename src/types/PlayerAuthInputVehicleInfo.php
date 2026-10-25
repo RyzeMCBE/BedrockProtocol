@@ -22,14 +22,14 @@ use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 final class PlayerAuthInputVehicleInfo{
 
 	public function __construct(
-		private float $vehicleRotationX,
-		private float $vehicleRotationZ,
+		private ?float $vehicleRotationX,
+		private ?float $vehicleRotationZ,
 		private int $predictedVehicleActorUniqueId
 	){}
 
-	public function getVehicleRotationX() : float{ return $this->vehicleRotationX; }
+	public function getVehicleRotationX() : ?float{ return $this->vehicleRotationX; }
 
-	public function getVehicleRotationZ() : float{ return $this->vehicleRotationZ; }
+	public function getVehicleRotationZ() : ?float{ return $this->vehicleRotationZ; }
 
 	public function getPredictedVehicleActorUniqueId() : int{ return $this->predictedVehicleActorUniqueId; }
 
@@ -42,8 +42,8 @@ final class PlayerAuthInputVehicleInfo{
 	}
 
 	public function write(ByteBufferWriter $out) : void{
-		LE::writeFloat($out, $this->vehicleRotationX);
-		LE::writeFloat($out, $this->vehicleRotationZ);
+		LE::writeFloat($out, $this->vehicleRotationX ?? throw new \InvalidArgumentException("vehicleRotationX must be set for 1.20.70+"));
+		LE::writeFloat($out, $this->vehicleRotationZ ?? throw new \InvalidArgumentException("vehicleRotationZ must be set for 1.20.70+"));
 		CommonTypes::putActorUniqueId($out, $this->predictedVehicleActorUniqueId);
 	}
 }

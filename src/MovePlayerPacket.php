@@ -96,10 +96,13 @@ class MovePlayerPacket extends DataPacket implements ClientboundPacket, Serverbo
 		$this->mode = Byte::readUnsigned($in);
 		$this->onGround = CommonTypes::getBool($in);
 		$this->ridingActorRuntimeId = CommonTypes::getActorRuntimeId($in);
-		if($this->mode === MovePlayerPacket::MODE_TELEPORT){
-			$this->teleportCause = LE::readSignedInt($in);
-			$this->teleportItem = LE::readSignedInt($in);
-		}
+		$telemetryData = CommonTypes::readOptional($in, static fn(ByteBufferReader $in) : array => [
+			LE::readUnsignedInt($in),
+			LE::readUnsignedInt($in)
+		]);
+		if($telemetryData !== null){
+				[$this->teleportCause, $this->teleportItem] = $telemetryData;
+			}
 		$this->tick = VarInt::readUnsignedLong($in);
 	}
 
@@ -112,10 +115,11 @@ class MovePlayerPacket extends DataPacket implements ClientboundPacket, Serverbo
 		Byte::writeUnsigned($out, $this->mode);
 		CommonTypes::putBool($out, $this->onGround);
 		CommonTypes::putActorRuntimeId($out, $this->ridingActorRuntimeId);
-		if($this->mode === MovePlayerPacket::MODE_TELEPORT){
-			LE::writeSignedInt($out, $this->teleportCause);
-			LE::writeSignedInt($out, $this->teleportItem);
-		}
+		$telemetryData = $this->mode === self::MODE_TELEPORT ? [$this->teleportCause, $this->teleportItem] : null;
+		CommonTypes::writeOptional($out, $telemetryData, static function(ByteBufferWriter $out, array $data) : void{
+				LE::writeUnsignedInt($out, $data[0]);
+				LE::writeUnsignedInt($out, $data[1]);
+			});
 		VarInt::writeUnsignedLong($out, $this->tick);
 	}
 

@@ -33,7 +33,7 @@ final class FullContainerName{
 	public static function read(ByteBufferReader $in) : self{
 		$containerId = Byte::readUnsigned($in);
 		$dynamicId = CommonTypes::readOptional($in, LE::readUnsignedInt(...));
-		return new self($containerId, $dynamicId);
+		return new self($containerId, $dynamicId ?? null);
 	}
 
 	public function write(ByteBufferWriter $out) : void{

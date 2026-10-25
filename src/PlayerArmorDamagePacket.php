@@ -48,17 +48,20 @@ class PlayerArmorDamagePacket extends DataPacket implements ClientboundPacket{
 		return $this->armorSlotAndDamagePairs;
 	}
 
-	protected function decodePayload(ByteBufferReader $in) : void{
-		for($i = 0, $count = VarInt::readUnsignedInt($in); $i < $count; ++$i){
-			$this->armorSlotAndDamagePairs[] = ArmorSlotAndDamagePair::read($in);
-		}
+	protected function decodePayload(ByteBufferReader $in) : void
+	{
+		$length = VarInt::readUnsignedInt($in);
+		for($i = 0; $i < $length; ++$i){
+				$this->armorSlotAndDamagePairs[] = ArmorSlotAndDamagePair::read($in);
+			}
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out) : void
+	{
 		VarInt::writeUnsignedInt($out, count($this->armorSlotAndDamagePairs));
 		foreach($this->armorSlotAndDamagePairs as $pair){
-			$pair->write($out);
-		}
+				$pair->write($out);
+			}
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

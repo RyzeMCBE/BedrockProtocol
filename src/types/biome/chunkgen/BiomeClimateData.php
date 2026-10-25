@@ -23,6 +23,10 @@ final class BiomeClimateData{
 	public function __construct(
 		private float $temperature,
 		private float $downfall,
+		private float $redSporeDensity,
+		private float $blueSporeDensity,
+		private float $ashDensity,
+		private float $whiteAshDensity,
 		private float $snowAccumulationMin,
 		private float $snowAccumulationMax,
 	){}
@@ -30,6 +34,14 @@ final class BiomeClimateData{
 	public function getTemperature() : float{ return $this->temperature; }
 
 	public function getDownfall() : float{ return $this->downfall; }
+
+	public function getRedSporeDensity() : float{ return $this->redSporeDensity; }
+
+	public function getBlueSporeDensity() : float{ return $this->blueSporeDensity; }
+
+	public function getAshDensity() : float{ return $this->ashDensity; }
+
+	public function getWhiteAshDensity() : float{ return $this->whiteAshDensity; }
 
 	public function getSnowAccumulationMin() : float{ return $this->snowAccumulationMin; }
 
@@ -44,6 +56,10 @@ final class BiomeClimateData{
 		return new self(
 			$temperature,
 			$downfall,
+			0.0,
+			0.0,
+			0.0,
+			0.0,
 			$snowAccumulationMin,
 			$snowAccumulationMax
 		);

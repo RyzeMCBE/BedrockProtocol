@@ -27,6 +27,8 @@ final class ItemStackRequestActionType{
 	public const DESTROY = 4;
 	public const CRAFTING_CONSUME_INPUT = 5;
 	public const CRAFTING_CREATE_SPECIFIC_RESULT = 6;
+	public const PLACE_INTO_BUNDLE = 7;
+	public const TAKE_FROM_BUNDLE = 8;
 	public const LAB_TABLE_COMBINE = 9;
 	public const BEACON_PAYMENT = 10;
 	public const MINE_BLOCK = 11;
@@ -38,4 +40,25 @@ final class ItemStackRequestActionType{
 	public const CRAFTING_LOOM = 17;
 	public const CRAFTING_NON_IMPLEMENTED_DEPRECATED_ASK_TY_LAING = 18;
 	public const CRAFTING_RESULTS_DEPRECATED_ASK_TY_LAING = 19; //no idea what this is for
+
+	public const INNER_TYPES_1_26_40 = [
+		0 => self::TAKE,
+		1 => self::PLACE,
+		2 => self::SWAP,
+		3 => self::DROP,
+		4 => self::DESTROY,
+		5 => self::CRAFTING_CONSUME_INPUT,
+		6 => self::CRAFTING_CREATE_SPECIFIC_RESULT,
+		7 => self::LAB_TABLE_COMBINE,
+		8 => self::BEACON_PAYMENT,
+		9 => self::MINE_BLOCK,
+		10 => self::CRAFTING_RECIPE,
+		11 => self::CRAFTING_RECIPE_AUTO,
+		12 => self::CREATIVE_CREATE,
+		13 => self::CRAFTING_RECIPE_OPTIONAL,
+		14 => self::CRAFTING_GRINDSTONE,
+		15 => self::CRAFTING_LOOM,
+		16 => self::CRAFTING_NON_IMPLEMENTED_DEPRECATED_ASK_TY_LAING,
+		17 => self::CRAFTING_RESULTS_DEPRECATED_ASK_TY_LAING
+	];
 }

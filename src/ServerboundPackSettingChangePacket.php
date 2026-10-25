@@ -18,6 +18,7 @@ use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
+use pocketmine\network\mcpe\protocol\types\ArrayPackSetting;
 use pocketmine\network\mcpe\protocol\types\BoolPackSetting;
 use pocketmine\network\mcpe\protocol\types\FloatPackSetting;
 use pocketmine\network\mcpe\protocol\types\PackSetting;
@@ -54,6 +55,7 @@ class ServerboundPackSettingChangePacket extends DataPacket implements Serverbou
 			PackSettingType::FLOAT => FloatPackSetting::read($in, $name),
 			PackSettingType::BOOL => BoolPackSetting::read($in, $name),
 			PackSettingType::STRING => StringPackSetting::read($in, $name),
+			PackSettingType::ARRAY => ArrayPackSetting::read($in, $name),
 		};
 	}
 

@@ -28,6 +28,10 @@ final class BiomeDefinitionEntry{
 		private int $id,
 		private float $temperature,
 		private float $downfall,
+		private float $redSporeDensity,
+		private float $blueSporeDensity,
+		private float $ashDensity,
+		private float $whiteAshDensity,
 		private float $foliageSnow,
 		private float $depth,
 		private float $scale,
@@ -44,6 +48,14 @@ final class BiomeDefinitionEntry{
 	public function getTemperature() : float{ return $this->temperature; }
 
 	public function getDownfall() : float{ return $this->downfall; }
+
+	public function getRedSporeDensity() : float{ return $this->redSporeDensity; }
+
+	public function getBlueSporeDensity() : float{ return $this->blueSporeDensity; }
+
+	public function getAshDensity() : float{ return $this->ashDensity; }
+
+	public function getWhiteAshDensity() : float{ return $this->whiteAshDensity; }
 
 	public function getFoliageSnow() : float{ return $this->foliageSnow; }
 

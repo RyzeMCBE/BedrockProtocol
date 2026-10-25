@@ -50,6 +50,7 @@ class BossEventPacket extends DataPacket implements ClientboundPacket, Serverbou
 	public float $healthPercent = 0.0;
 	public string $title = "";
 	public string $filteredTitle = "";
+	public bool $darkenScreen = false;
 	public int $color = BossBarColor::PINK;
 	public int $overlay = 0;
 
@@ -60,11 +61,12 @@ class BossEventPacket extends DataPacket implements ClientboundPacket, Serverbou
 		return $result;
 	}
 
-	public static function show(int $bossActorUniqueId, string $title, float $healthPercent, int $color = BossBarColor::PURPLE, int $overlay = 0) : self{
+	public static function show(int $bossActorUniqueId, string $title, float $healthPercent, bool $darkenScreen = false, int $color = BossBarColor::PURPLE, int $overlay = 0) : self{
 		$result = self::base($bossActorUniqueId, self::TYPE_SHOW);
 		$result->title = $title;
 		$result->filteredTitle = $title;
 		$result->healthPercent = $healthPercent;
+		$result->darkenScreen = $darkenScreen;
 		$result->color = $color;
 		$result->overlay = $overlay;
 		return $result;
@@ -99,8 +101,9 @@ class BossEventPacket extends DataPacket implements ClientboundPacket, Serverbou
 		return $result;
 	}
 
-	public static function properties(int $bossActorUniqueId, int $color = BossBarColor::PURPLE, int $overlay = 0) : self{
+	public static function properties(int $bossActorUniqueId, bool $darkenScreen, int $color = BossBarColor::PURPLE, int $overlay = 0) : self{
 		$result = self::base($bossActorUniqueId, self::TYPE_PROPERTIES);
+		$result->darkenScreen = $darkenScreen;
 		$result->color = $color;
 		$result->overlay = $overlay;
 		return $result;
@@ -114,7 +117,6 @@ class BossEventPacket extends DataPacket implements ClientboundPacket, Serverbou
 
 	protected function decodePayload(ByteBufferReader $in) : void{
 		$this->bossActorUniqueId = CommonTypes::getActorUniqueId($in);
-		$this->playerActorUniqueId = CommonTypes::getActorUniqueId($in);
 		$this->eventType = Byte::readUnsigned($in);
 		$this->title = CommonTypes::getString($in);
 		$this->filteredTitle = CommonTypes::getString($in);
@@ -125,7 +127,6 @@ class BossEventPacket extends DataPacket implements ClientboundPacket, Serverbou
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
 		CommonTypes::putActorUniqueId($out, $this->bossActorUniqueId);
-		CommonTypes::putActorUniqueId($out, $this->playerActorUniqueId);
 		Byte::writeUnsigned($out, $this->eventType);
 		CommonTypes::putString($out, $this->title);
 		CommonTypes::putString($out, $this->filteredTitle);

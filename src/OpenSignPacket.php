@@ -43,12 +43,12 @@ class OpenSignPacket extends DataPacket implements ClientboundPacket{
 	public function isFront() : bool{ return $this->front; }
 
 	protected function decodePayload(ByteBufferReader $in) : void{
-		$this->blockPosition = CommonTypes::getBlockPosition($in);
+		$this->blockPosition = CommonTypes::getBlockPosition($in, true);
 		$this->front = CommonTypes::getBool($in);
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
-		CommonTypes::putBlockPosition($out, $this->blockPosition);
+		CommonTypes::putBlockPosition($out, $this->blockPosition, true);
 		CommonTypes::putBool($out, $this->front);
 	}
 

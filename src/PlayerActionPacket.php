@@ -47,16 +47,16 @@ class PlayerActionPacket extends DataPacket implements ClientboundPacket, Server
 	protected function decodePayload(ByteBufferReader $in) : void{
 		$this->actorRuntimeId = CommonTypes::getActorRuntimeId($in);
 		$this->action = VarInt::readSignedInt($in);
-		$this->blockPosition = CommonTypes::getBlockPosition($in);
-		$this->resultPosition = CommonTypes::getBlockPosition($in);
+		$this->blockPosition = CommonTypes::getBlockPosition($in, true);
+		$this->resultPosition = CommonTypes::getBlockPosition($in, true);
 		$this->face = VarInt::readSignedInt($in);
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
 		CommonTypes::putActorRuntimeId($out, $this->actorRuntimeId);
 		VarInt::writeSignedInt($out, $this->action);
-		CommonTypes::putBlockPosition($out, $this->blockPosition);
-		CommonTypes::putBlockPosition($out, $this->resultPosition);
+		CommonTypes::putBlockPosition($out, $this->blockPosition, true);
+		CommonTypes::putBlockPosition($out, $this->resultPosition, true);
 		VarInt::writeSignedInt($out, $this->face);
 	}
 

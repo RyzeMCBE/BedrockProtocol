@@ -56,7 +56,6 @@ class CommandOutputPacket extends DataPacket implements ClientboundPacket{
 	 */
 	protected function getCommandMessage(ByteBufferReader $in) : CommandOutputMessage{
 		$message = new CommandOutputMessage();
-
 		$message->messageId = CommonTypes::getString($in);
 		$message->isInternal = CommonTypes::getBool($in);
 

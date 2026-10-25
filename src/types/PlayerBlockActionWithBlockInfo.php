@@ -52,6 +52,7 @@ final class PlayerBlockActionWithBlockInfo implements PlayerBlockAction{
 
 	public static function isValidActionType(int $actionType) : bool{
 		return match($actionType){
+			PlayerAction::STOP_BREAK => true,
 			PlayerAction::ABORT_BREAK,
 			PlayerAction::START_BREAK,
 			PlayerAction::CRACK_BREAK,

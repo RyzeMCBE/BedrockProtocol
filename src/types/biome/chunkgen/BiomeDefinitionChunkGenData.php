@@ -74,13 +74,13 @@ final class BiomeDefinitionChunkGenData{
 		$multinoiseGenRules = CommonTypes::readOptional($in, fn() => BiomeMultinoiseGenRulesData::read($in));
 		$legacyWorldGenRules = CommonTypes::readOptional($in, fn() => BiomeLegacyWorldGenRulesData::read($in));
 		$replacementsData = CommonTypes::readOptional($in, function(ByteBufferReader $in) : array{
-			$count = VarInt::readUnsignedInt($in);
-			$result = [];
-			for($i = 0; $i < $count; ++$i){
-				$result[] = BiomeReplacementData::read($in);
-			}
-			return $result;
-		});
+				$count = VarInt::readUnsignedInt($in);
+				$result = [];
+				for($i = 0; $i < $count; ++$i){
+					$result[] = BiomeReplacementData::read($in);
+				}
+				return $result;
+			});
 		$villageType = CommonTypes::readOptional($in, fn() => Byte::readUnsigned($in));
 		$surfaceBuilderData = CommonTypes::readOptional($in, fn() => BiomeSurfaceBuilderData::read($in));
 		$subSurfaceBuilderData = CommonTypes::readOptional($in, fn() => BiomeSurfaceBuilderData::read($in));
@@ -93,10 +93,10 @@ final class BiomeDefinitionChunkGenData{
 			$overworldGenRules,
 			$multinoiseGenRules,
 			$legacyWorldGenRules,
-			$replacementsData,
-			$villageType,
-			$surfaceBuilderData,
-			$subSurfaceBuilderData
+			$replacementsData ?? null,
+			$villageType ?? null,
+			$surfaceBuilderData ?? null,
+			$subSurfaceBuilderData ?? null
 		);
 	}
 
@@ -109,11 +109,11 @@ final class BiomeDefinitionChunkGenData{
 		CommonTypes::writeOptional($out, $this->multinoiseGenRules, fn(ByteBufferWriter $out, BiomeMultinoiseGenRulesData $v) => $v->write($out));
 		CommonTypes::writeOptional($out, $this->legacyWorldGenRules, fn(ByteBufferWriter $out, BiomeLegacyWorldGenRulesData $v) => $v->write($out));
 		CommonTypes::writeOptional($out, $this->replacementsData, function(ByteBufferWriter $out, array $v) : void{
-			VarInt::writeUnsignedInt($out, count($v));
-			foreach($v as $item){
-				$item->write($out);
-			}
-		});
+				VarInt::writeUnsignedInt($out, count($v));
+				foreach($v as $item){
+					$item->write($out);
+				}
+			});
 		CommonTypes::writeOptional($out, $this->villageType, fn(ByteBufferWriter $out, int $v) => Byte::writeUnsigned($out, $v));
 		CommonTypes::writeOptional($out, $this->surfaceBuilderData, fn(ByteBufferWriter $out, BiomeSurfaceBuilderData $v) => $v->write($out));
 		CommonTypes::writeOptional($out, $this->subSurfaceBuilderData, fn(ByteBufferWriter $out, BiomeSurfaceBuilderData $v) => $v->write($out));

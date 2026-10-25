@@ -61,29 +61,16 @@ class BiomeDefinitionListPacket extends DataPacket implements ClientboundPacket{
 		 */
 		$stringIndexLookup = [];
 		$strings = [];
-		$addString = function(string $string) use (&$stringIndexLookup, &$strings) : int{
-			if(isset($stringIndexLookup[$string])){
+		$addString = function (string $string) use (&$stringIndexLookup, &$strings) : int {
+			if (isset($stringIndexLookup[$string])) {
 				return $stringIndexLookup[$string];
 			}
-
 			$stringIndexLookup[$string] = count($stringIndexLookup);
 			$strings[] = $string;
 			return $stringIndexLookup[$string];
 		};
 
-		$definitionData = array_map(fn(BiomeDefinitionEntry $entry) => new BiomeDefinitionData(
-			$addString($entry->getBiomeName()),
-			$entry->getId(),
-			$entry->getTemperature(),
-			$entry->getDownfall(),
-			$entry->getFoliageSnow(),
-			$entry->getDepth(),
-			$entry->getScale(),
-			$entry->getMapWaterColor(),
-			$entry->hasRain(),
-			($v = $entry->getTags()) === null ? null : array_map($addString, $v),
-			$entry->getChunkGenData(),
-		), $definitions);
+		$definitionData = array_map(fn(BiomeDefinitionEntry $entry) => new BiomeDefinitionData($addString($entry->getBiomeName()), $entry->getId(), $entry->getTemperature(), $entry->getDownfall(), $entry->getRedSporeDensity(), $entry->getBlueSporeDensity(), $entry->getAshDensity(), $entry->getWhiteAshDensity(), $entry->getFoliageSnow(), $entry->getDepth(), $entry->getScale(), $entry->getMapWaterColor(), $entry->hasRain(), ($v = $entry->getTags()) === null ? null : array_map($addString, $v), $entry->getChunkGenData()), $definitions);
 
 		return self::create($definitionData, $strings);
 	}
@@ -109,6 +96,10 @@ class BiomeDefinitionListPacket extends DataPacket implements ClientboundPacket{
 			$data->getId(),
 			$data->getTemperature(),
 			$data->getDownfall(),
+			$data->getRedSporeDensity(),
+			$data->getBlueSporeDensity(),
+			$data->getAshDensity(),
+			$data->getWhiteAshDensity(),
 			$data->getFoliageSnow(),
 			$data->getDepth(),
 			$data->getScale(),
@@ -131,24 +122,24 @@ class BiomeDefinitionListPacket extends DataPacket implements ClientboundPacket{
 	 */
 	public function getStrings() : array{ return $this->strings; }
 
-	protected function decodePayload(ByteBufferReader $in) : void{
-		for($i = 0, $count = VarInt::readUnsignedInt($in); $i < $count; ++$i){
+	protected function decodePayload(ByteBufferReader $in) : void
+	{
+		for ($i = 0, $count = VarInt::readUnsignedInt($in); $i < $count; ++$i) {
 			$this->definitionData[] = BiomeDefinitionData::read($in);
 		}
-
-		for($i = 0, $count = VarInt::readUnsignedInt($in); $i < $count; ++$i){
+		for ($i = 0, $count = VarInt::readUnsignedInt($in); $i < $count; ++$i) {
 			$this->strings[] = CommonTypes::getString($in);
 		}
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out) : void
+	{
 		VarInt::writeUnsignedInt($out, count($this->definitionData));
-		foreach($this->definitionData as $data){
+		foreach ($this->definitionData as $data) {
 			$data->write($out);
 		}
-
 		VarInt::writeUnsignedInt($out, count($this->strings));
-		foreach($this->strings as $string){
+		foreach ($this->strings as $string) {
 			CommonTypes::putString($out, $string);
 		}
 	}

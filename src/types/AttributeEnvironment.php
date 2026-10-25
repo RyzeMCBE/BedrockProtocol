@@ -33,7 +33,8 @@ final class AttributeEnvironment{
 		private int $totalTransitionTicks,
 		private string $easeType,
 		private int $localTransitionTicks,
-		private bool $noiseTransition
+		private bool $noiseTransition,
+		private ?NoiseAlignment $noiseAlignment = null
 	){}
 
 	public function getName() : string{ return $this->name; }
@@ -56,6 +57,7 @@ final class AttributeEnvironment{
 	public function getLocalTransitionTicks() : int{ return $this->localTransitionTicks; }
 
 	public function isNoiseTransition() : bool{ return $this->noiseTransition; }
+	public function getNoiseAlignment() : ?NoiseAlignment{ return $this->noiseAlignment; }
 
 	public static function read(ByteBufferReader $in) : self{
 		$name = CommonTypes::getString($in);
@@ -67,6 +69,7 @@ final class AttributeEnvironment{
 		$easeType = CommonTypes::getString($in);
 		$localTransitionTicks = LE::readUnsignedInt($in);
 		$noiseTransition = CommonTypes::getBool($in);
+		$noiseAlignment = NoiseAlignment::read($in);
 
 		return new self(
 			$name,
@@ -77,7 +80,8 @@ final class AttributeEnvironment{
 			$totalTransitionTicks,
 			$easeType,
 			$localTransitionTicks,
-			$noiseTransition
+			$noiseTransition,
+			$noiseAlignment
 		);
 	}
 
@@ -91,5 +95,6 @@ final class AttributeEnvironment{
 		CommonTypes::putString($out, $this->easeType);
 		LE::writeUnsignedInt($out, $this->localTransitionTicks);
 		CommonTypes::putBool($out, $this->noiseTransition);
+		($this->noiseAlignment ?? new NoiseAlignment())->write($out);
 	}
 }

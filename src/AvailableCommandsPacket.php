@@ -171,6 +171,10 @@ final class AvailableCommandsPacket extends DataPacket implements ClientboundPac
 		return $result;
 	}
 
+	public static function convertArg(int $type) : int{
+		return $type;
+	}
+
 	protected function decodePayload(ByteBufferReader $in) : void{
 		$this->enumValues = [];
 		for($i = 0, $size = VarInt::readUnsignedInt($in); $i < $size; $i++){
@@ -179,8 +183,8 @@ final class AvailableCommandsPacket extends DataPacket implements ClientboundPac
 
 		$this->chainedSubCommandValues = [];
 		for($i = 0, $size = VarInt::readUnsignedInt($in); $i < $size; $i++){
-			$this->chainedSubCommandValues[] = CommonTypes::getString($in);
-		}
+				$this->chainedSubCommandValues[] = CommonTypes::getString($in);
+			}
 
 		$this->postfixes = [];
 		for($i = 0, $size = VarInt::readUnsignedInt($in); $i < $size; $i++){
@@ -194,8 +198,8 @@ final class AvailableCommandsPacket extends DataPacket implements ClientboundPac
 
 		$this->chainedSubCommandData = [];
 		for($i = 0, $size = VarInt::readUnsignedInt($in); $i < $size; $i++){
-			$this->chainedSubCommandData[] = ChainedSubCommandRawData::read($in);
-		}
+				$this->chainedSubCommandData[] = ChainedSubCommandRawData::read($in);
+			}
 
 		$this->commandData = [];
 		for($i = 0, $size = VarInt::readUnsignedInt($in); $i < $size; $i++){
@@ -218,11 +222,10 @@ final class AvailableCommandsPacket extends DataPacket implements ClientboundPac
 		foreach($this->enumValues as $value){
 			CommonTypes::putString($out, $value);
 		}
-
 		VarInt::writeUnsignedInt($out, count($this->chainedSubCommandValues));
 		foreach($this->chainedSubCommandValues as $value){
-			CommonTypes::putString($out, $value);
-		}
+				CommonTypes::putString($out, $value);
+			}
 
 		VarInt::writeUnsignedInt($out, count($this->postfixes));
 		foreach($this->postfixes as $postfix){
@@ -233,11 +236,10 @@ final class AvailableCommandsPacket extends DataPacket implements ClientboundPac
 		foreach($this->enums as $enum){
 			$enum->write($out);
 		}
-
 		VarInt::writeUnsignedInt($out, count($this->chainedSubCommandData));
 		foreach($this->chainedSubCommandData as $data){
-			$data->write($out);
-		}
+				$data->write($out);
+			}
 
 		VarInt::writeUnsignedInt($out, count($this->commandData));
 		foreach($this->commandData as $data){

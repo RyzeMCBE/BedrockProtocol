@@ -17,6 +17,7 @@ namespace pocketmine\network\mcpe\protocol;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
+use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use pocketmine\network\mcpe\protocol\types\BlockPosition;
 
@@ -29,7 +30,10 @@ class PlaySoundPacket extends DataPacket implements ClientboundPacket{
 	public float $z;
 	public float $volume;
 	public float $pitch;
+	public int $loopCount = 0;
 	public ?int $serverSoundHandle = null;
+	public bool $bypassListenerRangeCheck = false;
+	public ?float $playbackPositionSeconds = null;
 
 	/**
 	 * @generate-create-func
@@ -42,6 +46,9 @@ class PlaySoundPacket extends DataPacket implements ClientboundPacket{
 		float $volume,
 		float $pitch,
 		?int $serverSoundHandle,
+		int $loopCount = 0,
+		bool $bypassListenerRangeCheck = false,
+		?float $playbackPositionSeconds = null,
 	) : self{
 		$result = new self;
 		$result->soundName = $soundName;
@@ -51,26 +58,35 @@ class PlaySoundPacket extends DataPacket implements ClientboundPacket{
 		$result->volume = $volume;
 		$result->pitch = $pitch;
 		$result->serverSoundHandle = $serverSoundHandle;
+		$result->loopCount = $loopCount;
+		$result->bypassListenerRangeCheck = $bypassListenerRangeCheck;
+		$result->playbackPositionSeconds = $playbackPositionSeconds;
 		return $result;
 	}
 
 	protected function decodePayload(ByteBufferReader $in) : void{
 		$this->soundName = CommonTypes::getString($in);
-		$blockPosition = CommonTypes::getBlockPosition($in);
+		$blockPosition = CommonTypes::getBlockPosition($in, true);
 		$this->x = $blockPosition->getX() / 8;
 		$this->y = $blockPosition->getY() / 8;
 		$this->z = $blockPosition->getZ() / 8;
 		$this->volume = LE::readFloat($in);
 		$this->pitch = LE::readFloat($in);
+		$this->loopCount = VarInt::readSignedInt($in);
+		$this->bypassListenerRangeCheck = CommonTypes::getBool($in);
 		$this->serverSoundHandle = CommonTypes::readOptional($in, LE::readUnsignedLong(...));
+		$this->playbackPositionSeconds = CommonTypes::readOptional($in, LE::readFloat(...));
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
 		CommonTypes::putString($out, $this->soundName);
-		CommonTypes::putBlockPosition($out, new BlockPosition((int) ($this->x * 8), (int) ($this->y * 8), (int) ($this->z * 8)));
+		CommonTypes::putBlockPosition($out, new BlockPosition((int) ($this->x * 8), (int) ($this->y * 8), (int) ($this->z * 8)), true);
 		LE::writeFloat($out, $this->volume);
 		LE::writeFloat($out, $this->pitch);
+		VarInt::writeSignedInt($out, $this->loopCount);
+		CommonTypes::putBool($out, $this->bypassListenerRangeCheck);
 		CommonTypes::writeOptional($out, $this->serverSoundHandle, LE::writeUnsignedLong(...));
+		CommonTypes::writeOptional($out, $this->playbackPositionSeconds, LE::writeFloat(...));
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

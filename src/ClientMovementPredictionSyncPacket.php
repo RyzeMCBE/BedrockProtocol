@@ -157,7 +157,7 @@ class ClientMovementPredictionSyncPacket extends DataPacket implements Serverbou
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
-		$this->flags->write($out);
+		$this->flags->write($out, self::FLAG_LENGTH);
 		LE::writeFloat($out, $this->scale);
 		LE::writeFloat($out, $this->width);
 		LE::writeFloat($out, $this->height);

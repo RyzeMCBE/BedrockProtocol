@@ -75,13 +75,13 @@ final class CameraAimAssistCategoryPriorities{
 
 		$blockTags = [];
 		for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
-			$blockTags[] = CameraAimAssistCategoryPriority::read($in);
-		}
+				$blockTags[] = CameraAimAssistCategoryPriority::read($in);
+			}
 
 		$entityTypeFamilies = [];
 		for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
-			$entityTypeFamilies[] = CameraAimAssistCategoryPriority::read($in);
-		}
+				$entityTypeFamilies[] = CameraAimAssistCategoryPriority::read($in);
+			}
 
 		$defaultEntityPriority = CommonTypes::readOptional($in, LE::readSignedInt(...));
 		$defaultBlockPriority = CommonTypes::readOptional($in, LE::readSignedInt(...));
@@ -105,16 +105,14 @@ final class CameraAimAssistCategoryPriorities{
 		foreach($this->blocks as $block){
 			$block->write($out);
 		}
-
 		VarInt::writeUnsignedInt($out, count($this->blockTags));
 		foreach($this->blockTags as $tag){
-			$tag->write($out);
-		}
-
+				$tag->write($out);
+			}
 		VarInt::writeUnsignedInt($out, count($this->entityTypeFamilies));
 		foreach($this->entityTypeFamilies as $family){
-			$family->write($out);
-		}
+					$family->write($out);
+				}
 
 		CommonTypes::writeOptional($out, $this->defaultEntityPriority, LE::writeSignedInt(...));
 		CommonTypes::writeOptional($out, $this->defaultBlockPriority, LE::writeSignedInt(...));
